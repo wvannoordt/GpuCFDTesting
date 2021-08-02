@@ -1,0 +1,5 @@
+CFD
+{
+    blockDim  = [2, 2, 2]
+    blockSize = [16, 16, 16]
+}
