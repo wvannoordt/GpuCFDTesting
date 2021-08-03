@@ -3,3 +3,19 @@ Grid
     blockDim  = [2, 2, 2]
     blockSize = [16, 16, 16]
 }
+Fluid
+{
+    gamma = 1.4
+    cp = 1005.0
+    visc = 1.8e-5
+}
+TGV
+{
+    reynolds = 1600.0
+    mach = 0.1
+    L = 1.0
+}
+GPU
+{
+    blockDimGpu = [10, 10, 10]
+}

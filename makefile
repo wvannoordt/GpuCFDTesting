@@ -29,15 +29,15 @@ DLINK := dlink
 endif
 
 HOST_FLAGS   := -x c++ -g -Wno-unknown-pragmas -std=c++11 -Werror -c ${COMPILE_TIME_OPT}
-DEVICE_FLAGS := -x cu -rdc=true -Xcompiler ${COMPILE_TIME_OPT} -dc
-DLINK_FLAGS  := -Xcompiler -dlink
-
-run: main
-	cd exampleRun; ./${TARGET} input.ptl
+DEVICE_FLAGS := -x cu -dc ${COMPILE_TIME_OPT}
+DLINK_FLAGS  := -dlink
 	
 main: setup ${HOST_OBJ} ${DEVICE_OBJ} ${DLINK}
 	${CC_HOST} ./obj/*.o -o bin/${TARGET} ${LINKS}
 	cp bin/${TARGET} exampleRun
+
+run: main
+	cd exampleRun; ./${TARGET} input.ptl
 
 ${HOST_OBJ}: obj/%.o : src/%.cpp
 	${CC_HOST} ${HOST_FLAGS} ${INCLUDE} $< -o $@

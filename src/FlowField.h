@@ -2,6 +2,7 @@
 #define FLOW_FIELD_H
 #include "CudaHeaders.h"
 #include "CallError.h"
+#include <vector>
 struct FlowField
 {
     double* data_d = NULL;

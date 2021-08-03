@@ -4,7 +4,7 @@
 
 #define CallError(mymsg) CallError_M(mymsg, __FILE__, __LINE__)
 
-void CallError_M(std::string message, const char* file, int line)
+static void CallError_M(std::string message, const char* file, int line)
 {
     std::string boldRed = "\033[1;31m";
     std::string reset = "\033[0m";
