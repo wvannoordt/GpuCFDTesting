@@ -1,13 +1,16 @@
+#define numPoints 16
 Grid
 {
-    blockDim  = [2, 2, 2]
-    blockSize = [16, 16, 16]
+    blockDim  = [1, 1, 1]
+    blockSize = [$(numPoints), $(numPoints), $(numPoints)]
+    nguard = 2
 }
 Fluid
 {
     gamma = 1.4
-    cp = 1005.0
-    visc = 1.8e-5
+    cp = 3.5
+    visc = 1.8e-4
+    Tinf = 273.0
 }
 TGV
 {

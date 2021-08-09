@@ -23,13 +23,13 @@ int main(int argc, char** argv)
     InputClass input;
     input.Read(tree["Grid"]);
     
-    TgvSpec tgv;
-    tgv.Read(tree["TGV"]);
-    print(tgv);
-    
     GasSpec gas;
-    gas.Read(tree["Gas"]);
+    gas.Read(tree["Fluid"]);
     print(gas);
+    
+    TgvSpec tgv;
+    tgv.Read(tree["TGV"], gas);
+    print(tgv);
     
     GpuConfig config(input);
     config.Read(tree["GPU"]);
@@ -49,6 +49,8 @@ int main(int argc, char** argv)
     if (input.is3D) flow.varNames[4] = "Z-Momentum";
     
     FillTgv(flow, gas, tgv, config);
+    auto arr = flow.UnloadBlock(0);
+    print(arr(2, 2, 2, 0));
     // FillConst(rhs, 0.0);
     
     

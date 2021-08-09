@@ -3,6 +3,7 @@
 #include "CudaHeaders.h"
 #include "CallError.h"
 #include <vector>
+#include "MdArray.h"
 struct FlowField
 {
     double* data_d = NULL;
@@ -14,6 +15,8 @@ struct FlowField
     int numVars;
     std::vector<int> blockDim;
     std::vector<int> blockSize;
+    size_t blockSizeBytes;
+    int numBlocks;
         
     FlowField(const std::vector<int>& blockDim_in, const std::vector<int>& blockSize_in, const int numVars_in, const int nguard_in)
     {
@@ -25,19 +28,22 @@ struct FlowField
         imin = 0;
         jmin = 0;
         kmin = 0;
-        imax = blockSize[0]+nguard;
-        imax = blockSize[1]+nguard;
+        imax = blockSize[0]+2*nguard;
+        jmax = blockSize[1]+2*nguard;
         kmax = 1;
         if (blockSize.size()==3)
         {
-            kmax = blockSize[2]+nguard;
+            kmax = blockSize[2]+2*nguard;
         }
         
         // (v, i, j, k, lb) vs (i, j, k, v, lb)
-        size_t blockSizeBytes = sizeof(double);
-        for (auto p: blockSize) blockSizeBytes *= p+2*nguard;
+        this->blockSizeBytes = sizeof(double);
+        for (auto p: blockSize)
+        {
+            blockSizeBytes *= p+2*nguard;
+        }
         blockSizeBytes *= numVars;
-        size_t numBlocks = 1;
+        numBlocks = 1;
         for (auto p: blockDim) numBlocks *= p;
         size_t totalAllocSize = blockSizeBytes * numBlocks;
         dataBlock = (double*)malloc(blockSizeBytes);
@@ -47,6 +53,23 @@ struct FlowField
             std::string name = "var"+std::to_string(i);
             varNames.push_back(name);
         }
+    }
+    
+    
+    MdArray<double, 4> GetBlock(int lb)
+    {
+        MdArray<double, 4> output(imax, jmax, kmax, numVars);
+        output.data = data_d + lb*blockSizeBytes;
+        return output;
+    }
+    
+    MdArray<double, 4> UnloadBlock(int lb)
+    {
+        MdArray<double, 4> output(imax, jmax, kmax, numVars);
+        // Cu_Check(cudaMemcpy(dataBlock, data_d + lb*blockSizeBytes, this->blockSizeBytes, cudaMemcpyDeviceToHost));
+        cudaMemcpy(dataBlock, data_d + lb*blockSizeBytes, this->blockSizeBytes, cudaMemcpyDeviceToHost);
+        output.data = dataBlock;
+        return output;
     }
     
     ~FlowField(void)

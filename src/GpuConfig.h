@@ -20,7 +20,7 @@ struct GpuConfig
         if (blockDimGpu.size() != input->dim) CallError("blockDimGpu and gridDimGpu do not agree with the provided dimensions for mesh");
     }
     
-    dim3 GridConfig(void)
+    dim3 GridConfig(void) const
     {
         dim3 output;
         output.x = blockDimGpu[0];
@@ -33,7 +33,7 @@ struct GpuConfig
         return output;
     }
     
-    dim3 BlockConfig(void)
+    dim3 BlockConfig(void) const
     {
         dim3 output;
         dim3 gridConf = this->GridConfig();
