@@ -25,7 +25,7 @@ struct GpuConfig
         dim3 output;
         output.x = blockDimGpu[0];
         output.y = blockDimGpu[1];
-        output.z = blockDimGpu[1];
+        output.z = 1;
         if (input->dim==3)
         {
             output.z = blockDimGpu[2];
@@ -37,11 +37,12 @@ struct GpuConfig
     {
         dim3 output;
         dim3 gridConf = this->GridConfig();
-        output.x = (input->blockSize[0] + gridConf.x - 1)/gridConf.x;
-        output.y = (input->blockSize[1] + gridConf.y - 1)/gridConf.y;
+        output.x = (input->blockSize[0]+2*input->nguard + gridConf.x - 1)/gridConf.x;
+        output.y = (input->blockSize[1]+2*input->nguard + gridConf.y - 1)/gridConf.y;
+        output.z = 1;
         if (input->dim==3)
         {
-            output.z = (input->blockSize[2] + gridConf.z - 1)/gridConf.z;
+            output.z = (input->blockSize[2]+2*input->nguard + gridConf.z - 1)/gridConf.z;
         }
         return output;
     }

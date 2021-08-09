@@ -7,15 +7,17 @@ struct InputClass
 {
     std::vector<int> blockDim;
     std::vector<int> blockSize;
+    std::vector<double> domainBounds;
     int nguard;
     int numVars;
     bool is3D;
     int dim;
     void Read(PTL::PropertySection& section)
     {
-        section["blockDim"].MapTo(&blockDim)   = new PTL::PTLIntegerVector("Dimensions of the block configuration");
-        section["blockSize"].MapTo(&blockSize) = new PTL::PTLIntegerVector("Dimensions of each individual block");
-        section["nguard"].MapTo(&nguard)       = new PTL::PTLInteger(2, "Number of exchange cells");
+        section["blockDim"].MapTo(&blockDim)         = new PTL::PTLIntegerVector("Dimensions of the block configuration");
+        section["blockSize"].MapTo(&blockSize)       = new PTL::PTLIntegerVector("Dimensions of each individual block");
+        section["domainBounds"].MapTo(&domainBounds) = new PTL::PTLDoubleVector("Dimensions of the domain");
+        section["nguard"].MapTo(&nguard)             = new PTL::PTLInteger(2, "Number of exchange cells");
         section.StrictParse();
         
         if (blockDim.size() != blockSize.size()) CallError("blockDim and blockSize have different dimensions!");
@@ -31,6 +33,9 @@ struct InputClass
             is3D = true;
             numVars = 5;
         }
+        
+        if (domainBounds.size() != 2*dim) CallError("Wrong number of entries specified for domainBounds!");
+        
     }
 };
 #endif

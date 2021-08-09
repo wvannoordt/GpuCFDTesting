@@ -49,8 +49,8 @@ dlink:
 	${CC_DEVICE} ${DLINK_FLAGS} ${DEVICE_OBJ} -o obj/cu.dlink.o
 	
 setup:
-	mkdir -p obj bin
+	mkdir -p obj bin exampleRun/output
 
 clean:
-	rm -rf obj bin
+	rm -rf obj bin exampleRun/output
 	rm -f ./exampleRun/${TARGET}

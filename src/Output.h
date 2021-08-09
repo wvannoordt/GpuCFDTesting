@@ -106,13 +106,14 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
     std::string blockTemplateFileName = blockDirectory + "/b{}.vtr";
     
     
-    bool is3D = flow.kmax!=1;
+    bool is3D = flow.is3D;
     for (int lb = 0; lb < flow.numBlocks; lb++)
     {
         
         int nCellsi = flow.imax - 2*flow.nguard;
         int nCellsj = flow.jmax - 2*flow.nguard;
         int nCellsk = flow.kmax - 2*flow.nguard;
+        if (!is3D) nCellsk = 1;
         int nGuardi = flow.nguard;
         int nGuardj = flow.nguard;
         int nGuardk = flow.nguard;
@@ -124,21 +125,15 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
         
         
         std::string filename = strformat(blockTemplateFileName, ZFill(lb, 7));
-        double bds[6] = {0.0};
-        bds[1] = 1.0;
-        bds[3] = 1.0;
-        bds[5] = 1.0;
-        
-        double ghostBnds[6] = {0.0};
-        ghostBnds[0] = -0.2;
-        ghostBnds[1] =  0.2;
-        ghostBnds[2] = -0.2;
-        ghostBnds[3] =  0.2;
-        ghostBnds[4] = -0.2;
-        ghostBnds[5] =  0.2;
-        
-        double dx[3] = {0.1};
-        
+        auto box = flow.GetBox(lb);
+        double ghostBnds[6];
+        ghostBnds[4] = 0.0;
+        ghostBnds[5] = 0.0;
+        for (int i = 0; i < (is3D?3:2); i++)
+        {
+            ghostBnds[2*i] = box.bounds[2*i] - box.dx[i]*flow.nguard;
+            ghostBnds[2*i+1] = box.bounds[2*i+1] + box.dx[i]*flow.nguard;
+        }
         std::string varsString = "";
         for (int l = 0; l < flow.varNames.size(); l++)
         {
@@ -159,7 +154,7 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
         myfile << spaces(16) << strformat("{} {} {} {} {} {}", nGuardi, nGuardj+nCellsi, nGuardj, nGuardj+nCellsj, nGuardk, is3D?(nGuardk+nCellsk):0) << std::endl;
         myfile << spaces(12) << "</DataArray>" << std::endl;
         myfile << spaces(12) << "<DataArray type=\"Float64\" Name=\"avtOriginalBounds\" NumberOfTuples=\"6\" format=\"ascii\">" << std::endl;
-        myfile << spaces(16) << strformat("{} {} {} {} {} {}", bds[0], bds[1], bds[2], bds[3], bds[4], bds[5]) << std::endl;
+        myfile << spaces(16) << strformat("{} {} {} {} {} {}", box.bounds[0], box.bounds[1], box.bounds[2], box.bounds[3], box.bounds[4], box.bounds[5]) << std::endl;
         myfile << spaces(12) << "</DataArray>" << std::endl;
         myfile << spaces(8) << "</FieldData>" << std::endl;
         myfile << spaces(8) << strformat("<Piece Extent=\"0 {} 0 {} 0 {}\">", nTotali, nTotalj, nTotalk) << std::endl;
@@ -171,15 +166,24 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
         {
             myfile << spaces(16) << "<DataArray type=\"Float64\" Name=\"" << flow.varNames[var] << "\" format=\"binary\">" << std::endl;
             ////https://mathema.tician.de/what-they-dont-tell-you-about-vtk-xml-binary-formats/
-            unsigned int ss = array.dims[0]*array.dims[1]*array.dims[2];
-            size_t offset = ss*sizeof(double);
-            Base64ByteConversionStream(myfile, (char*)(&ss), sizeof(int));
+            unsigned int ss = array.dims[0]*array.dims[1]*array.dims[2]*sizeof(double);
+            size_t offset = ss;
+            Base64ByteConversionStream(myfile, (char*)(&ss), sizeof(unsigned int));
             Base64ByteConversionStream(myfile, (char*)(array.data)+var*offset, offset);
             myfile << "\n" << spaces(16) << "</DataArray>" << std::endl;
         }
         
         myfile << spaces(16) << "<DataArray type=\"UInt8\" Name=\"avtGhostZones\" format=\"ascii\">" << std::endl;
-        auto isGhost = [&](int i, int j, int k) -> bool {return (i<flow.nguard)||(i>=array.dims[0]+flow.nguard)||(j<flow.nguard)||(j>=array.dims[1]+flow.nguard)||(k<flow.nguard)||(k>=array.dims[2]+flow.nguard);};
+        auto isGhost = [&](int i, int j, int k) -> bool
+        {
+            return
+                (i<flow.nguard)||
+                (i>=array.dims[0]-flow.nguard)||
+                (j<flow.nguard)||
+                (j>=array.dims[1]-flow.nguard)||
+                (k<flow.nguard)||
+                (k>=array.dims[2]-flow.nguard);
+        };
         for (int k = 0; k < flow.kmax; k++)
         {
             for (int j = 0; j < flow.jmax; j++)
@@ -196,19 +200,19 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
         myfile << spaces(16) << strformat("<DataArray type=\"Float64\" format=\"ascii\" RangeMin=\"{}\" RangeMax=\"{}\">", ghostBnds[0], ghostBnds[1]) << std::endl;
         for (int i = -nGuardi; i <=nCellsi+nGuardi; i++)
         {
-            myfile << csp20 << bds[0] + i*dx[0] << "\n";
+            myfile << csp20 << box.bounds[0] + i*box.dx[0] << "\n";
         }
         myfile << spaces(16) << "</DataArray>" << std::endl;
         myfile << spaces(16) << strformat("<DataArray type=\"Float64\" format=\"ascii\" RangeMin=\"{}\" RangeMax=\"{}\">", ghostBnds[2], ghostBnds[3]) << std::endl;
         for (int j = -nGuardj; j <=nCellsj+nGuardj; j++)
         {
-            myfile << csp20 << bds[2] + j*dx[1] << "\n";
+            myfile << csp20 << box.bounds[2] + j*box.dx[1] << "\n";
         }
         myfile << spaces(16) << "</DataArray>" << std::endl;
         myfile << spaces(16) << strformat("<DataArray type=\"Float64\" format=\"ascii\" RangeMin=\"{}\" RangeMax=\"{}\">", ghostBnds[4], ghostBnds[4]) << std::endl;
         for (int k = -nGuardk; k <=nCellsk+nGuardk; k++)
         {
-            myfile << csp20 << (is3D?(bds[4] + k*dx[2]):0.0) << "\n";
+            myfile << csp20 << (is3D?(box.bounds[4] + k*box.dx[2]):0.0) << "\n";
         }
         myfile << spaces(16) << "</DataArray>" << std::endl;
         myfile << spaces(12) << "</Coordinates>" << std::endl;
