@@ -7,6 +7,7 @@
 #include "TgvSpec.h"
 #include "GasSpec.h"
 #include "GpuConfig.h"
+#include "Output.h"
 
 std::string GetInputFilename(int argc, char** argv)
 {
@@ -42,15 +43,14 @@ int main(int argc, char** argv)
     if (input.is3D) flow.varNames[4] = "W";
     
     FlowField rhs(input.blockDim, input.blockSize, input.numVars, input.nguard);
-    flow.varNames[0] = "Continuity";
-    flow.varNames[1] = "Energy";
-    flow.varNames[2] = "X-Momentum";
-    flow.varNames[3] = "Y-Momentum";
-    if (input.is3D) flow.varNames[4] = "Z-Momentum";
+    rhs.varNames[0] = "Continuity";
+    rhs.varNames[1] = "Energy";
+    rhs.varNames[2] = "X-Momentum";
+    rhs.varNames[3] = "Y-Momentum";
+    if (input.is3D) rhs.varNames[4] = "Z-Momentum";
     
     FillTgv(flow, gas, tgv, config);
-    auto arr = flow.UnloadBlock(0);
-    print(arr(2, 2, 2, 0));
+    Output(flow, ".", "ini");
     // FillConst(rhs, 0.0);
     
     

@@ -47,7 +47,7 @@ struct FlowField
         for (auto p: blockDim) numBlocks *= p;
         size_t totalAllocSize = blockSizeBytes * numBlocks;
         dataBlock = (double*)malloc(blockSizeBytes);
-        cudaMalloc(&data_d, totalAllocSize);
+        cudaMalloc((void**)(&data_d), totalAllocSize);
         for (int i = 0; i < numVars; i++)
         {
             std::string name = "var"+std::to_string(i);
@@ -56,18 +56,17 @@ struct FlowField
     }
     
     
-    MdArray<double, 4> GetBlock(int lb)
+    MdArray<double, 4> GetBlock(int lb) const
     {
         MdArray<double, 4> output(imax, jmax, kmax, numVars);
-        output.data = data_d + lb*blockSizeBytes;
+        output.data = data_d + lb*(blockSizeBytes/sizeof(double));
         return output;
     }
     
-    MdArray<double, 4> UnloadBlock(int lb)
+    MdArray<double, 4> UnloadBlock(int lb) const
     {
         MdArray<double, 4> output(imax, jmax, kmax, numVars);
-        // Cu_Check(cudaMemcpy(dataBlock, data_d + lb*blockSizeBytes, this->blockSizeBytes, cudaMemcpyDeviceToHost));
-        cudaMemcpy(dataBlock, data_d + lb*blockSizeBytes, this->blockSizeBytes, cudaMemcpyDeviceToHost);
+        Cu_Check(cudaMemcpy((void*)dataBlock, (void*)(data_d + lb*(blockSizeBytes/sizeof(double))), this->blockSizeBytes, cudaMemcpyDeviceToHost));
         output.data = dataBlock;
         return output;
     }

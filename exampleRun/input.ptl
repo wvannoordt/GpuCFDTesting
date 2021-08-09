@@ -1,7 +1,7 @@
 #define numPoints 16
 Grid
 {
-    blockDim  = [1, 1, 1]
+    blockDim  = [2, 2, 2]
     blockSize = [$(numPoints), $(numPoints), $(numPoints)]
     nguard = 2
 }
