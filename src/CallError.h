@@ -16,6 +16,7 @@ static void CallError_M(std::string message, const char* file, int line)
     std::cout << boldRed;
     std::cout << "------------------------------------------------------" << std::endl;
     std::cout << reset;
+    abort();
 }
 
 #endif

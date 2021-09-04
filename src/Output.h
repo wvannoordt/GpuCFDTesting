@@ -109,7 +109,7 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
     bool is3D = flow.is3D;
     for (int lb = 0; lb < flow.numBlocks; lb++)
     {
-        
+        print("Block", lb, "of", flow.numBlocks-1);
         int nCellsi = flow.imax - 2*flow.nguard;
         int nCellsj = flow.jmax - 2*flow.nguard;
         int nCellsk = flow.kmax - 2*flow.nguard;

@@ -8,6 +8,7 @@
 #include "GasSpec.h"
 #include "GpuConfig.h"
 #include "Output.h"
+#include "Exchange.h"
 
 std::string GetInputFilename(int argc, char** argv)
 {
@@ -40,19 +41,22 @@ int main(int argc, char** argv)
     flow.varNames[1] = "T";
     flow.varNames[2] = "U";
     flow.varNames[3] = "V";
-    if (input.is3D) flow.varNames[4] = "W";
+    if (input.is3D) flow.varNames.back() = "W";
     
     FlowField rhs(input.blockDim, input.blockSize, input.numVars, input.nguard, input.domainBounds);
     rhs.varNames[0] = "Continuity";
     rhs.varNames[1] = "Energy";
     rhs.varNames[2] = "X-Momentum";
     rhs.varNames[3] = "Y-Momentum";
-    if (input.is3D) rhs.varNames[4] = "Z-Momentum";
+    if (input.is3D) rhs.varNames.back() = "Z-Momentum";
     
+    print("Set initial condition...");
     FillTgv(flow, gas, tgv, config);
-    Output(flow, "output", "ini");
-    // FillConst(rhs, 0.0);
+    FillConst(rhs, 0.0, config);
     
+    Exchange(flow, config); 
+    
+    Output(flow, "output", "initialCondition");
     
     return 0;
 }

@@ -1,8 +1,9 @@
 #define numPoints 32
-#define twoPi @prod(2.0, 3.141592653)
+#define twoPi 6.28318530718
+
 Grid
 {
-    blockDim  = [3, 3, 3]
+    blockDim  = [2, 2, 2]
     blockSize = [$(numPoints), $(numPoints), $(numPoints)]
     domainBounds = [0, $(twoPi), 0, $(twoPi), 0, $(twoPi)]
     nguard = 3
@@ -22,5 +23,5 @@ TGV
 }
 GPU
 {
-    blockDimGpu = [4, 4, 4]
+    threadDimGpu = [4, 4, 4]
 }

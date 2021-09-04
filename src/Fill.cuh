@@ -7,6 +7,6 @@
 #include "GasSpec.h"
 #include "GpuConfig.h"
 void FillTgv(FlowField& flow, const GasSpec& gas, const TgvSpec& tgv, const GpuConfig& config);
-// void FillConst(FlowField& arr,  double val);
+void FillConst(FlowField& arr,  double val, const GpuConfig& config);
 
 #endif
