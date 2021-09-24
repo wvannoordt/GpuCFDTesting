@@ -24,4 +24,11 @@ template <typename... Ts> void PrintToStream(std::ostream& stm, Ts... ts)
     print_recursive(stm, ts...);
 }
 
+static inline std::string zfill(int num, int numZeros)
+{
+    std::string output = std::to_string(num);
+    while(output.length() < numZeros) output = "0" + output;
+    return output;
+}
+
 #endif

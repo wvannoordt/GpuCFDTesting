@@ -127,4 +127,41 @@ template <typename arType, const int arRank = 1> struct MdArray
     }
 };
 
+template <typename arType, const int... dims> struct StaticArray
+{
+	private:
+		template <const int depth, typename ...T> static _f_hybrid constexpr size_t sprodr(void) {return 1;}
+		template <const int depth, const int T, const int... Tss> static _f_hybrid constexpr size_t sprodr(void) {return (depth==0)?T:T*sprodr<depth-1, Tss...>();}
+		template <const int depth, const int... Tss> static _f_hybrid constexpr size_t sprod(void) {return (depth==0)?1:sprodr<depth-1, Tss...>();}
+		arType data[StaticArray::sprod<sizeof...(dims), dims...>()];
+		template <const int depth, typename index> _f_hybrid inline size_t idxR(index i)
+		{
+			static_assert(std::is_integral<index>::value, "Integral value for index required.");
+			return i*sprod<sizeof...(dims)-1, dims...>();
+		}
+		template <const int depth, typename index, typename... indices> _f_hybrid inline size_t idxR(index i, indices... is)
+		{
+			static_assert(std::is_integral<index>::value, "Integral value for index required.");
+			return sprod<depth, dims...>()*i + idxR<depth+1>(is...);
+		}
+	public:
+		template <typename... indices> _f_hybrid inline arType& operator () (indices... is) {return data[idxR<0>(is...)];}
+        _f_hybrid StaticArray(void) {}
+        _f_hybrid StaticArray(const arType val)
+        {
+            for (size_t i = 0; i < StaticArray::sprod<sizeof...(dims), dims...>(); i++)
+            {
+                data[i] = val;
+            }
+        }
+        _f_hybrid StaticArray& operator = (const arType val)
+        {
+            for (size_t i = 0; i < StaticArray::sprod<sizeof...(dims), dims...>(); i++)
+            {
+                data[i] = val;
+            }
+            return *this;
+        }
+};
+
 #endif

@@ -1,6 +1,5 @@
 #define numPoints 32
 #define twoPi 6.28318530718
-
 Grid
 {
     blockDim  = [2, 2, 2]
@@ -24,4 +23,13 @@ TGV
 GPU
 {
     threadDimGpu = [4, 4, 4]
+}
+Time
+{
+    numSteps = 100000
+    timestep = 1e-6
+}
+Output
+{
+    outputInterval = 4000
 }

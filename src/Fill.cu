@@ -1,4 +1,4 @@
-#include "Fill.cuh"
+#include "Fill.h"
 #include "print.h"
 #include "MdArray.h"
 __global__ void K_FillTgv(MdArray<double, 4> flow, GasSpec gas, TgvSpec tgv, int nguard, Box box)
@@ -13,7 +13,7 @@ __global__ void K_FillTgv(MdArray<double, 4> flow, GasSpec gas, TgvSpec tgv, int
         double y = (box.bounds[2]+(j-nguard)*box.dx[1])/tgv.L;
         double z = (box.bounds[4]+(k-nguard)*box.dx[2])/tgv.L;
         double p = tgv.P0+((tgv.rho0*tgv.V0*tgv.V0)*(cos(2*x)+cos(2*y))*(cos(2*z)+2.0))/16.0;
-        double T = p/tgv.rho0*gas.R;        
+        double T = p/tgv.rho0*gas.R;
         double u = tgv.V0*sin(x)*cos(y)*cos(z);
         double v = -tgv.V0*cos(x)*sin(y)*cos(z);
         double w = 0.0;

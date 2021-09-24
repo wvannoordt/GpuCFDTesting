@@ -101,6 +101,7 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
     std::string blockDirectory = strformat("{}/{}_b", directory, fileTitle);
     std::string mainFilename   = strformat("{}/{}.vtm", directory, fileTitle);
     std::string blockTemplateFileNameRelative = strformat("{}_b/", fileTitle) + "b{}.vtr";
+    
     CreateDirectory(blockDirectory);
     
     std::string blockTemplateFileName = blockDirectory + "/b{}.vtr";

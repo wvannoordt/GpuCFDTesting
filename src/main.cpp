@@ -3,12 +3,17 @@
 #include "InputClass.h"
 #include "print.h"
 #include "FlowField.h"
-#include "Fill.cuh"
+#include "Fill.h"
 #include "TgvSpec.h"
 #include "GasSpec.h"
 #include "GpuConfig.h"
 #include "Output.h"
 #include "Exchange.h"
+#include "TimeControl.h"
+#include "OutputProps.h"
+#include "Rhs.h"
+#include "Advance.h"
+#include "ScopeTimer.h"
 
 std::string GetInputFilename(int argc, char** argv)
 {
@@ -36,6 +41,12 @@ int main(int argc, char** argv)
     GpuConfig config(input);
     config.Read(tree["GPU"]);
     
+    TimeControl time;
+    time.Read(tree["Time"]);
+    
+    OutputProps outputProps;
+    outputProps.Read(tree["Output"]);
+    
     FlowField flow(input.blockDim, input.blockSize, input.numVars, input.nguard, input.domainBounds);
     flow.varNames[0] = "P";
     flow.varNames[1] = "T";
@@ -52,11 +63,27 @@ int main(int argc, char** argv)
     
     print("Set initial condition...");
     FillTgv(flow, gas, tgv, config);
-    FillConst(rhs, 0.0, config);
     
     Exchange(flow, config); 
     
     Output(flow, "output", "initialCondition");
+    
+    for (; time.nt <= time.numSteps; time++)
+    {
+        ScopeTimer tmr("step");
+        print(time);
+        FillConst(rhs, 0.0, config);
+        ComputeRhs(rhs, flow, gas, config);
+        if (time.nt % outputProps.outputInterval == 0) 
+        {
+            std::string ts = zfill(time.nt, 8);
+            std::string filename = "data"+ts;
+            print("Outputting file", filename);
+            Output(flow, "output", filename);
+        }
+        Advance(rhs, flow, time.timestep, gas, config);
+        Exchange(flow, config);
+    }
     
     return 0;
 }
