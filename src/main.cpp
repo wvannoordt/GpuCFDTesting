@@ -14,6 +14,7 @@
 #include "Rhs.h"
 #include "Advance.h"
 #include "ScopeTimer.h"
+#include "Mms.h"
 
 std::string GetInputFilename(int argc, char** argv)
 {
@@ -64,8 +65,9 @@ int main(int argc, char** argv)
     print("Set initial condition...");
     FillTgv(flow, gas, tgv, config);
     
-    Exchange(flow, config); 
-    
+    NavierStokesMms mms(gas);
+    // AnalyticalFcn(mms, flow, config);
+    Exchange(flow, config);
     Output(flow, "output", "initialCondition");
     
     for (; time.nt <= time.numSteps; time++)

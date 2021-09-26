@@ -9,9 +9,9 @@ __global__ void K_FillTgv(MdArray<double, 4> flow, GasSpec gas, TgvSpec tgv, int
     int nvars=flow.dims[3];
     if (i<flow.dims[0]-nguard && j<flow.dims[1]-nguard && k<flow.dims[2]-nguard && i >= nguard && j >= nguard && k >= nguard)
     {
-        double x = (box.bounds[0]+(i-nguard)*box.dx[0])/tgv.L;
-        double y = (box.bounds[2]+(j-nguard)*box.dx[1])/tgv.L;
-        double z = (box.bounds[4]+(k-nguard)*box.dx[2])/tgv.L;
+        double x = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0])/tgv.L;
+        double y = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1])/tgv.L;
+        double z = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2])/tgv.L;
         double p = tgv.P0+((tgv.rho0*tgv.V0*tgv.V0)*(cos(2*x)+cos(2*y))*(cos(2*z)+2.0))/16.0;
         double T = p/tgv.rho0*gas.R;
         double u = tgv.V0*sin(x)*cos(y)*cos(z);

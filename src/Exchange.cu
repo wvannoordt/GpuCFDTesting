@@ -44,7 +44,6 @@ void ExchangeSingleBlock(FlowField& arr, int send, int recv, int dijk[3], GpuCon
     if (arr.is3D) ndim = 3;
     for (int i = 0; i < ndim; i++)
     {
-        bool dijk0 = (dijk[i]==0);
         switch (dijk[i])
         {
             case -1:

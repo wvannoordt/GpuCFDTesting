@@ -1,24 +1,24 @@
-#define numPoints 32
+#define numPoints 64
 #define twoPi 6.28318530718
 Grid
 {
     blockDim  = [2, 2, 2]
     blockSize = [$(numPoints), $(numPoints), $(numPoints)]
-    domainBounds = [0, $(twoPi), 0, $(twoPi), 0, $(twoPi)]
+    domainBounds = [0, 1.0, 0, 1.0, 0, 1.0]
     nguard = 3
 }
 Fluid
 {
     gamma = 1.4
     cp = 3.5
-    visc = 1.8e-4
-    Tinf = 273.0
+    visc = 0.000625
+    Tinf = 0.7143
 }
 TGV
 {
     reynolds = 1600.0
     mach = 0.1
-    L = 1.0
+    L = @div(1.0, $(twoPi))
 }
 GPU
 {
@@ -26,10 +26,10 @@ GPU
 }
 Time
 {
-    numSteps = 100000
-    timestep = 1e-6
+    numSteps = 30000
+    timestep = 0.0002
 }
 Output
 {
-    outputInterval = 4000
+    outputInterval = 1000
 }
