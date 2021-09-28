@@ -65,8 +65,6 @@ int main(int argc, char** argv)
     print("Set initial condition...");
     FillTgv(flow, gas, tgv, config);
     
-    NavierStokesMms mms(gas);
-    // AnalyticalFcn(mms, flow, config);
     Exchange(flow, config);
     Output(flow, "output", "initialCondition");
     
