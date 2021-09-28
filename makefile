@@ -28,8 +28,8 @@ ifneq (${DEVICE_OBJ},)
 DLINK := dlink
 endif
 
-HOST_FLAGS   := -x c++ -g -Wno-unknown-pragmas -std=c++11 -Werror -c ${COMPILE_TIME_OPT}
-DEVICE_FLAGS := -x cu -dc ${COMPILE_TIME_OPT}
+HOST_FLAGS   := -x c++ -O3 -g -Wno-unknown-pragmas -std=c++11 -Werror -c ${COMPILE_TIME_OPT}
+DEVICE_FLAGS := -x cu -dc -O3 ${COMPILE_TIME_OPT}
 DLINK_FLAGS  := -dlink
 	
 main: setup ${HOST_OBJ} ${DEVICE_OBJ} ${DLINK}
