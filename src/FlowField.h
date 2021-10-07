@@ -18,12 +18,11 @@ struct FlowField
     int numVars;
     std::vector<int> blockDim;
     std::vector<int> blockSize;
-    std::vector<double> domainBounds;
     size_t blockSizeBytes;
     int numBlocks;
     bool is3D;
         
-    FlowField(const std::vector<int>& blockDim_in, const std::vector<int>& blockSize_in, const int numVars_in, const int nguard_in, std::vector<double>& domainBounds_in)
+    FlowField(const std::vector<int>& blockDim_in, const std::vector<int>& blockSize_in, const int numVars_in, const int nguard_in)
     {
         nguard = nguard_in;
         numVars = numVars_in;
@@ -42,8 +41,6 @@ struct FlowField
             kmax = blockSize[2]+2*nguard;
         }
         is3D = kmax!=1;
-        domainBounds = domainBounds_in;
-        if (domainBounds.size() != 2*blockDim.size()) CallError("Wrong number of entries specified for domainBounds!");
         
         // (v, i, j, k, lb) vs (i, j, k, v, lb)
         this->blockSizeBytes = sizeof(double);
@@ -90,19 +87,19 @@ struct FlowField
         {
             ijkbox[2] = (lb-ijkbox[0]-blockDim[0]*ijkbox[1])/(blockDim[0]*blockDim[1]);
         }
-        double dxdomain[3];
+        double dxdomain[3] = {1.0, 1.0, 1.0};
         dxdomain[2] = 1.0;
         for (int i = 0; i < (is3D?3:2); i++)
         {
-            dxdomain[i] = (domainBounds[2*i+1]-domainBounds[2*i])/blockDim[i];
+            dxdomain[i] = 1.0/blockDim[i];
         }
         Box output;
         output.bounds[4] = 0.0;
         output.bounds[5] = 1.0;
         for (int i = 0; i < (is3D?3:2); i++)
         {
-            output.bounds[2*i] = domainBounds[2*i]+ijkbox[i]*dxdomain[i];
-            output.bounds[2*i+1] = domainBounds[2*i]+(ijkbox[i]+1)*dxdomain[i];
+            output.bounds[2*i] = ijkbox[i]*dxdomain[i];
+            output.bounds[2*i+1] = (ijkbox[i]+1)*dxdomain[i];
         }
         output.dx[2] = 1.0;
         for (int i = 0; i < (is3D?3:2); i++)

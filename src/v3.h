@@ -12,6 +12,13 @@ template <typename T> struct v3
         data[2] = t3;
     }
     
+    _f_hybrid v3(void)
+    {
+        data[0] = 0.0;
+        data[1] = 0.0;
+        data[2] = 0.0;
+    }
+    
     _f_hybrid v3(const v3<T> & rhs)
     {
         data[0] = rhs.data[0];
@@ -20,6 +27,8 @@ template <typename T> struct v3
     }
     
     _f_hybrid T& operator [] (const int i) {return data[i];}
+    
+    _f_hybrid T& operator () (const int i) {return data[i];}
 };
 
 #endif

@@ -118,6 +118,6 @@ void ComputeRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas, const GpuCo
         auto box = flow.GetBox(lb);
         K_Rhs<<<grid, block>>>(rhsArray, flowArray, gas, flow.nguard, box);
     }
-    cudaDeviceSynchronize();
+    cudaDeviceSynchronize(); 
     Cu_Check(cudaGetLastError());
 }

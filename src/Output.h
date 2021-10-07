@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <cstring>
+#include "v3.h"
+#include "Metric.h"
 
 static inline void Base64ByteConversionStream(std::ostream& strm, char* bytes, size_t size)
 {
@@ -152,7 +154,7 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
         myfile << spaces(4) << strformat("<RectilinearGrid WholeExtent=\"0 {} 0 {} 0 {}\">", nTotali, nTotalj, nTotalk) << std::endl;
         myfile << spaces(8) << "<FieldData>" << std::endl;
         myfile << spaces(12) << "<DataArray type=\"Int32\" Name=\"avtRealDims\" NumberOfTuples=\"6\" format=\"ascii\">" << std::endl;
-        myfile << spaces(16) << strformat("{} {} {} {} {} {}", nGuardi, nGuardj+nCellsi, nGuardj, nGuardj+nCellsj, nGuardk, is3D?(nGuardk+nCellsk):0) << std::endl;
+        myfile << spaces(16) << strformat("{} {} {} {} {} {}", nGuardi, nGuardi+nCellsi, nGuardj, nGuardj+nCellsj, nGuardk, is3D?(nGuardk+nCellsk):0) << std::endl;
         myfile << spaces(12) << "</DataArray>" << std::endl;
         myfile << spaces(12) << "<DataArray type=\"Float64\" Name=\"avtOriginalBounds\" NumberOfTuples=\"6\" format=\"ascii\">" << std::endl;
         myfile << spaces(16) << strformat("{} {} {} {} {} {}", box.bounds[0], box.bounds[1], box.bounds[2], box.bounds[3], box.bounds[4], box.bounds[5]) << std::endl;
@@ -201,19 +203,31 @@ static void Output(const FlowField& flow, std::string directory, std::string fil
         myfile << spaces(16) << strformat("<DataArray type=\"Float64\" format=\"ascii\" RangeMin=\"{}\" RangeMax=\"{}\">", ghostBnds[0], ghostBnds[1]) << std::endl;
         for (int i = -nGuardi; i <=nCellsi+nGuardi; i++)
         {
-            myfile << csp20 << box.bounds[0] + i*box.dx[0] << "\n";
+            v3<double> eta;
+            eta[0] = box.bounds[0] + i*box.dx[0];
+            v3<double> xyz;
+            GetCoords(eta, xyz);
+            myfile << csp20 << xyz[0] << "\n";
         }
         myfile << spaces(16) << "</DataArray>" << std::endl;
         myfile << spaces(16) << strformat("<DataArray type=\"Float64\" format=\"ascii\" RangeMin=\"{}\" RangeMax=\"{}\">", ghostBnds[2], ghostBnds[3]) << std::endl;
         for (int j = -nGuardj; j <=nCellsj+nGuardj; j++)
         {
-            myfile << csp20 << box.bounds[2] + j*box.dx[1] << "\n";
+            v3<double> eta;
+            eta[1] = box.bounds[2] + j*box.dx[1];
+            v3<double> xyz;
+            GetCoords(eta, xyz);
+            myfile << csp20 << xyz[1] << "\n";
         }
         myfile << spaces(16) << "</DataArray>" << std::endl;
         myfile << spaces(16) << strformat("<DataArray type=\"Float64\" format=\"ascii\" RangeMin=\"{}\" RangeMax=\"{}\">", ghostBnds[4], ghostBnds[4]) << std::endl;
         for (int k = -nGuardk; k <=nCellsk+nGuardk; k++)
         {
-            myfile << csp20 << (is3D?(box.bounds[4] + k*box.dx[2]):0.0) << "\n";
+            v3<double> eta;
+            eta[2] = box.bounds[4] + k*box.dx[2];
+            v3<double> xyz;
+            GetCoords(eta, xyz);
+            myfile << csp20 << xyz[2] << "\n";
         }
         myfile << spaces(16) << "</DataArray>" << std::endl;
         myfile << spaces(12) << "</Coordinates>" << std::endl;

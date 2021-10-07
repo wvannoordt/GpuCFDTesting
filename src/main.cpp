@@ -48,14 +48,14 @@ int main(int argc, char** argv)
     OutputProps outputProps;
     outputProps.Read(tree["Output"]);
     
-    FlowField flow(input.blockDim, input.blockSize, input.numVars, input.nguard, input.domainBounds);
+    FlowField flow(input.blockDim, input.blockSize, input.numVars, input.nguard);
     flow.varNames[0] = "P";
     flow.varNames[1] = "T";
     flow.varNames[2] = "U";
     flow.varNames[3] = "V";
     if (input.is3D) flow.varNames.back() = "W";
     
-    FlowField rhs(input.blockDim, input.blockSize, input.numVars, input.nguard, input.domainBounds);
+    FlowField rhs(input.blockDim, input.blockSize, input.numVars, input.nguard);
     rhs.varNames[0] = "Continuity";
     rhs.varNames[1] = "Energy";
     rhs.varNames[2] = "X-Momentum";
@@ -63,6 +63,23 @@ int main(int argc, char** argv)
     if (input.is3D) rhs.varNames.back() = "Z-Momentum";
     
     print("Set initial condition...");
+    
+    bool doMMS = true;
+    if (doMMS)
+    {
+        print("MMS");
+        NavierStokesMms mms(gas);
+        AnalyticalFcn(mms, flow, config);
+        
+        FillConst(rhs, 0.0, config);
+        ComputeRhs(rhs, flow, gas, config);
+        Output(rhs, "output", "RHS_num");
+        
+        AnalyticalRhs(mms, rhs, config);
+        Output(rhs, "output", "RHS_ana");
+        CallError("Finished MMS");
+    }
+    
     FillTgv(flow, gas, tgv, config);
     
     Exchange(flow, config);

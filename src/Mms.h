@@ -11,7 +11,8 @@
 struct NavierStokesMms
 {
     GasSpec gas;
-    const double pi = 3.1415926535;
+    const double realpi = 3.1415926535;
+    const double pi = 2.0*realpi;
     NavierStokesMms(const GasSpec& gas_in)
     {
         gas = gas_in;
