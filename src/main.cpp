@@ -70,6 +70,7 @@ int main(int argc, char** argv)
         print("MMS");
         NavierStokesMms mms(gas);
         AnalyticalFcn(mms, flow, config);
+        Output(flow, "output", "TestFcn");
         
         FillConst(rhs, 0.0, config);
         ComputeRhs(rhs, flow, gas, config);

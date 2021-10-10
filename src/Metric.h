@@ -1,13 +1,19 @@
 #ifndef METRIC_H
 #define METRIC_H
 
+#include "ConstMath.h"
 #include "CudaHeaders.h"
 #include "v3.h"
 #include "m9.h"
+
+const double pi = 3.1415926535;
+const double dxWall = 0.01;
+
 static _f_hybrid inline void GetCoords(v3<double>& eta, v3<double>& xyz) // \eta(x)
 {
-    xyz[0] = eta[0];
-    xyz[0] = (0.5*eta[0]*eta[0]-0.3333333333333*eta[0]*eta[0]*eta[0]) + 0.05*eta[0];
+    auto f = [&](double d) -> double {return 0.5-0.5*cos(pi*d);};
+    double delta = (1.0-eta[0])*(-f(dxWall)) + eta[0]*f(dxWall);
+    xyz[0] = f((1.0-eta[0])*(dxWall)+(eta[0])*(1.0-dxWall))+delta;
     xyz[1] = eta[1];
     xyz[2] = eta[2];
 };
@@ -16,7 +22,6 @@ static _f_hybrid inline void GetCoordsGrad(v3<double>& eta, m9<double>& deta_dxy
 {
     //eta, x
     deta_dxyz(0,0) = 6.0*(eta[0]-eta[0]*eta[0]);
-    deta_dxyz(0,0) = 1.0;
     deta_dxyz(0,1) = 0.0;
     deta_dxyz(0,2) = 0.0;
     

@@ -1,6 +1,8 @@
 #include "Fill.h"
 #include "print.h"
 #include "MdArray.h"
+#include "v3.h"
+#include "Metric.h"
 __global__ void K_FillTgv(MdArray<double, 4> flow, GasSpec gas, TgvSpec tgv, int nguard, Box box)
 {
     int i = blockIdx.x*blockDim.x+threadIdx.x;
@@ -9,13 +11,17 @@ __global__ void K_FillTgv(MdArray<double, 4> flow, GasSpec gas, TgvSpec tgv, int
     int nvars=flow.dims[3];
     if (i<flow.dims[0]-nguard && j<flow.dims[1]-nguard && k<flow.dims[2]-nguard && i >= nguard && j >= nguard && k >= nguard)
     {
-        double x = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0])/tgv.L;
-        double y = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1])/tgv.L;
-        double z = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2])/tgv.L;
-        double p = tgv.P0+((tgv.rho0*tgv.V0*tgv.V0)*(cos(2*x)+cos(2*y))*(cos(2*z)+2.0))/16.0;
+        v3<double> eta;
+        eta[0] = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
+        eta[1] = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1]);
+        eta[2] = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2]);
+        v3<double> xyz;
+        GetCoords(eta, xyz);
+        for (int d = 0; d < 3; d++) xyz[d]/=tgv.L;
+        double p = tgv.P0+((tgv.rho0*tgv.V0*tgv.V0)*(cos(2*xyz[0])+cos(2*xyz[1]))*(cos(2*xyz[2])+2.0))/16.0;
         double T = p/tgv.rho0*gas.R;
-        double u = tgv.V0*sin(x)*cos(y)*cos(z);
-        double v = -tgv.V0*cos(x)*sin(y)*cos(z);
+        double u = tgv.V0*sin(xyz[0])*cos(xyz[1])*cos(xyz[2]);
+        double v = -tgv.V0*cos(xyz[0])*sin(xyz[1])*cos(xyz[2]);
         double w = 0.0;
         flow(i, j, k, nvars-1) = w;
         flow(i, j, k, 0) = p;

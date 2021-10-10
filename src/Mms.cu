@@ -1,5 +1,6 @@
 #include "Mms.h"
-
+#include "v3.h"
+#include "Metric.h"
 __global__ void K_MmsRhs(NavierStokesMms mms, MdArray<double, 4> rhs, int nguard, Box box)
 {
     int i = blockIdx.x*blockDim.x+threadIdx.x;
@@ -8,11 +9,14 @@ __global__ void K_MmsRhs(NavierStokesMms mms, MdArray<double, 4> rhs, int nguard
     int nvars=rhs.dims[3];
     if (i<rhs.dims[0]-nguard && j<rhs.dims[1]-nguard && k<rhs.dims[2]-nguard && i >= nguard && j >= nguard && k >= nguard)
     {
-        double x = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
-        double y = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1]);
-        double z = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2]);
+        v3<double> eta;
+        eta[0] = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
+        eta[1] = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1]);
+        eta[2] = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2]);
+        v3<double> xyz;
+        GetCoords(eta, xyz);
         double rhsAna[5];
-        mms.rhs(x, y, z, rhsAna);
+        mms.rhs(xyz[0], xyz[1], xyz[2], rhsAna);
         for (int nv = 0; nv < nvars; nv++) rhs(i, j, k, nv) = rhsAna[nv];
     }
 }
@@ -25,11 +29,14 @@ __global__ void K_MmsTestFcn(NavierStokesMms mms, MdArray<double, 4> prims, int 
     int nvars=prims.dims[3];
     if (i<prims.dims[0] && j<prims.dims[1] && k<prims.dims[2])
     {
-        double x = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
-        double y = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1]);
-        double z = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2]);
+        v3<double> eta;
+        eta[0] = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
+        eta[1] = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1]);
+        eta[2] = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2]);
+        v3<double> xyz;
+        GetCoords(eta, xyz);
         double primsAna[5];
-        mms.testFcn(x, y, z, primsAna);
+        mms.testFcn(xyz[0], xyz[1], xyz[2], primsAna);
         for (int nv = 0; nv < nvars; nv++) prims(i, j, k, nv) = primsAna[nv];
     }
 }
