@@ -66,17 +66,17 @@ struct NavierStokesMms
     _f_no_inline _f_hybrid double dH_dx(const double& x, const double& y, const double& z) const
     {
         return U(x,y,z)*dU_dx(x,y,z)+V(x,y,z)*dV_dx(x,y,z)+W(x,y,z)*dW_dx(x,y,z)
-            + (Rho(x,y,z)*dP_dx(x,y,z)-dRho_dx(x,y,z)*P(x,y,z))/(Rho(x,y,z)*Rho(x,y,z)*(gas.gamma-1.0));
+            + gas.gamma*(Rho(x,y,z)*dP_dx(x,y,z)-dRho_dx(x,y,z)*P(x,y,z))/(Rho(x,y,z)*Rho(x,y,z)*(gas.gamma-1.0));
     }
     _f_no_inline _f_hybrid double dH_dy(const double& x, const double& y, const double& z) const
     {
         return U(x,y,z)*dU_dy(x,y,z)+V(x,y,z)*dV_dy(x,y,z)+W(x,y,z)*dW_dy(x,y,z)
-            + (Rho(x,y,z)*dP_dy(x,y,z)-dRho_dy(x,y,z)*P(x,y,z))/(Rho(x,y,z)*Rho(x,y,z)*(gas.gamma-1.0));
+            + gas.gamma*(Rho(x,y,z)*dP_dy(x,y,z)-dRho_dy(x,y,z)*P(x,y,z))/(Rho(x,y,z)*Rho(x,y,z)*(gas.gamma-1.0));
     }
     _f_no_inline _f_hybrid double dH_dz(const double& x, const double& y, const double& z) const
     {
         return U(x,y,z)*dU_dz(x,y,z)+V(x,y,z)*dV_dz(x,y,z)+W(x,y,z)*dW_dz(x,y,z)
-            + (Rho(x,y,z)*dP_dz(x,y,z)-dRho_dz(x,y,z)*P(x,y,z))/(Rho(x,y,z)*Rho(x,y,z)*(gas.gamma-1.0));
+            + gas.gamma*(Rho(x,y,z)*dP_dz(x,y,z)-dRho_dz(x,y,z)*P(x,y,z))/(Rho(x,y,z)*Rho(x,y,z)*(gas.gamma-1.0));
     }
     
     _f_no_inline _f_hybrid void rhs(const double& x, const double& y, const double& z, double (&rhsAr)[5]) const
@@ -142,4 +142,5 @@ struct NavierStokesMms
 
 void AnalyticalRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config);
 void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims, const GpuConfig& config);
+void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas, const GpuConfig& config);
 #endif

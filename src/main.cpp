@@ -62,25 +62,9 @@ int main(int argc, char** argv)
     rhs.varNames[3] = "Y-Momentum";
     if (input.is3D) rhs.varNames.back() = "Z-Momentum";
     
+    if (outputProps.doMMS) RunMMS(flow, rhs, gas, config);
+    
     print("Set initial condition...");
-    
-    bool doMMS = true;
-    if (doMMS)
-    {
-        print("MMS");
-        NavierStokesMms mms(gas);
-        AnalyticalFcn(mms, flow, config);
-        Output(flow, "output", "TestFcn");
-        
-        FillConst(rhs, 0.0, config);
-        ComputeRhs(rhs, flow, gas, config);
-        Output(rhs, "output", "RHS_num");
-        
-        AnalyticalRhs(mms, rhs, config);
-        Output(rhs, "output", "RHS_ana");
-        CallError("Finished MMS");
-    }
-    
     FillTgv(flow, gas, tgv, config);
     
     Exchange(flow, config);

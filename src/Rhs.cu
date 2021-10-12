@@ -1,4 +1,5 @@
 #include "Rhs.h"
+#include "Metric.h"
 
 #define f_DivSplit(q,j,l,v1)          (0.500*(q((v1),(j)) +   q((v1),(j)+(l))))
 #define fg_QuadSplit(q,j,l,v1,v2)     (0.250*(q((v1),(j)) +   q((v1),(j)+(l)))*(q((v2),(j)) + q((v2),(j)+(l))))
@@ -21,6 +22,8 @@ __global__ void K_Rhs(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec
     //ie,ke,T,P,rho,u,v,w
     StaticArray<double, 8, 1+centOrder> stencilData;
     double Rgas = gas.R;
+    v3<double> eta;
+    m9<double> deta_dxyz;
     if (i<flow.dims[0]-nguard && j<flow.dims[1]-nguard && k<flow.dims[2]-nguard && i >= nguard && j >= nguard && k >= nguard)
     {
         for (int idir = 0; idir < dim; idir++)
@@ -36,13 +39,18 @@ __global__ void K_Rhs(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec
         
             for (int n = 0; n < centOrder + 1; n++)
             {
-                //ie,ke,T,P,rho,u,v,w
-                //0  1  2 3 4   5 6 7
+                
+                int ii = i+dijk[0]*(n-stencilWid);
+                int jj = j+dijk[1]*(n-stencilWid);
+                int kk = k+dijk[2]*(n-stencilWid);
+                eta[0] = (box.bounds[0]+((double)(ii-nguard)+0.5)*box.dx[0]);
+                eta[1] = (box.bounds[2]+((double)(jj-nguard)+0.5)*box.dx[1]);
+                eta[2] = (box.bounds[4]+((double)(kk-nguard)+0.5)*box.dx[2]);
+                GetCoordsGrad(eta, deta_dxyz);
+                //ie,U_Contra,T,P,rho,u,v,w
+                //0  1        2 3 4   5 6 7
                 for (int v = 3; v < (5+dim); v++)
                 {
-                    int ii = i+dijk[0]*(n-stencilWid);
-                    int jj = j+dijk[1]*(n-stencilWid);
-                    int kk = k+dijk[2]*(n-stencilWid);
                     stencilData(v,n) = flow(ii, jj, kk, v-3);
                 }
                 // T
@@ -54,29 +62,31 @@ __global__ void K_Rhs(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec
                 // IE = P/(rho*(gamma - 1))
                 stencilData(0,n) = stencilData(3,n)/(stencilData(4,n)*(gas.gamma - 1.0));
         
-                // ke (don't care)
+                // U_Contra
                 stencilData(1,n) = 0.0;
-        
-                // Not needed per se starts
                 for (int vel_comp = 0; vel_comp < dim; vel_comp ++)
                 {
-                    stencilData(1,n) += 0.5*stencilData(5+vel_comp,n)*stencilData(5+vel_comp,n);
+                    stencilData(1,n) += stencilData(5+vel_comp,n)*deta_dxyz(idir, vel_comp)/deta_dxyz.det();
                 }
-                // Not needed per se ends
             }
-            // Mass conservation                              
+            eta[0] = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
+            eta[1] = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1]);
+            eta[2] = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2]);
+            GetCoordsGrad(eta, deta_dxyz);
+            double jac = deta_dxyz.det();
+            // Mass conservation
             for (int l = 1; l <= stencilWid; l++)
             {
                 double al = coeff[l-1];
                 int jf = stencilWid;
                 for (int m = 0; m <= (l-1); m++)
                 {
-                    C[1] += 2.0*al*fg_QuadSplit(stencilData,jf-m, l,4,5+idir);
-                    C[0] += 2.0*al*fg_QuadSplit(stencilData,jf+m,-l,4,5+idir);
+                    C[1] += 2.0*al*fg_QuadSplit(stencilData,jf-m, l,4,1);
+                    C[0] += 2.0*al*fg_QuadSplit(stencilData,jf+m,-l,4,1);
                     for (int idir_mom = 0; idir_mom < dim; idir_mom++)
                     {
-                        M[idir_mom      ] += 2.0*al*fg_CubeSplit(stencilData,jf-m, l,4,5+idir,5+idir_mom);
-                        M[idir_mom + dim] += 2.0*al*fg_CubeSplit(stencilData,jf+m,-l,4,5+idir,5+idir_mom);
+                        M[idir_mom      ] += 2.0*al*fg_CubeSplit(stencilData,jf-m, l,4,1,5+idir_mom);
+                        M[idir_mom + dim] += 2.0*al*fg_CubeSplit(stencilData,jf+m,-l,4,1,5+idir_mom);
                     }
         
                     PGRAD[1] += 2.0*al*f_DivSplit(stencilData,jf-m, l,3);
@@ -84,23 +94,23 @@ __global__ void K_Rhs(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec
         
                     for (int vel_comp = 0;  vel_comp < dim; vel_comp ++)
                     {
-                        KE[1] += 2.0*al*fg_QuadSplit(stencilData,jf-m, l,4,5+idir)*0.5*(stencilData(5+vel_comp,jf-m)*stencilData(5+vel_comp,jf-m+l));
-                        KE[0] += 2.0*al*fg_QuadSplit(stencilData,jf+m,-l,4,5+idir)*0.5*(stencilData(5+vel_comp,jf+m)*stencilData(5+vel_comp,jf+m-l));
+                        KE[1] += 2.0*al*fg_QuadSplit(stencilData,jf-m, l,4,1)*0.5*(stencilData(5+vel_comp,jf-m)*stencilData(5+vel_comp,jf-m+l));
+                        KE[0] += 2.0*al*fg_QuadSplit(stencilData,jf+m,-l,4,1)*0.5*(stencilData(5+vel_comp,jf+m)*stencilData(5+vel_comp,jf+m-l));
                     }
         
-                    IE[1] += 2.0*al*fg_CubeSplit(stencilData,jf-m, l,4,0,5+idir);
-                    IE[0] += 2.0*al*fg_CubeSplit(stencilData,jf+m,-l,4,0,5+idir);
+                    IE[1] += 2.0*al*fg_CubeSplit(stencilData,jf-m, l,4,0,1);
+                    IE[0] += 2.0*al*fg_CubeSplit(stencilData,jf+m,-l,4,0,1);
         
-                    PDIFF[1] += 2.0*al*fg_DivSplit(stencilData,jf-m, l,5+idir,3);
-                    PDIFF[0] += 2.0*al*fg_DivSplit(stencilData,jf+m,-l,5+idir,3);
+                    PDIFF[1] += 2.0*al*fg_DivSplit(stencilData,jf-m, l,1,3);
+                    PDIFF[0] += 2.0*al*fg_DivSplit(stencilData,jf+m,-l,1,3);
                 }
             }
-            rhsAr(i, j, k, nvars-1) -= invdx[idir]*(M[2] - M[5]);
-            rhsAr(i, j, k, 0)       -= invdx[idir]*(C[1] - C[0]);
-            rhsAr(i, j, k, 1)       -= invdx[idir]*(IE[1] + KE[1] + PDIFF[1] - IE[0] - KE[0] - PDIFF[0]);
-            rhsAr(i, j, k, 2)       -= invdx[idir]*(M[0] - M[3]);
-            rhsAr(i, j, k, 3)       -= invdx[idir]*(M[1] - M[4]);
-            rhsAr(i, j, k, 2+idir)  -= invdx[idir]*(PGRAD[1] - PGRAD[0]);
+            rhsAr(i, j, k, nvars-1) -= jac*invdx[idir]*(M[2] - M[5]);
+            rhsAr(i, j, k, 0)       -= jac*invdx[idir]*(C[1] - C[0]);
+            rhsAr(i, j, k, 1)       -= jac*invdx[idir]*(IE[1] + KE[1] + PDIFF[1] - IE[0] - KE[0] - PDIFF[0]);
+            rhsAr(i, j, k, 2)       -= jac*invdx[idir]*(M[0] - M[3]);
+            rhsAr(i, j, k, 3)       -= jac*invdx[idir]*(M[1] - M[4]);
+            rhsAr(i, j, k, 2+idir)  -= jac*invdx[idir]*(PGRAD[1] - PGRAD[0]);
             
             dijk[idir] = 0;
         }

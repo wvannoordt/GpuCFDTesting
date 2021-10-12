@@ -1,4 +1,4 @@
-#define numPoints 28
+#define numPoints 24
 #define twoPi 6.28318530718
 Grid
 {
@@ -31,4 +31,5 @@ Time
 Output
 {
     outputInterval = 1000
+    doMMS = true
 }

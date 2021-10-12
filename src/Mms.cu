@@ -1,6 +1,9 @@
 #include "Mms.h"
 #include "v3.h"
 #include "Metric.h"
+#include "Rhs.h"
+#include "Fill.h"
+#include "Output.h"
 __global__ void K_MmsRhs(NavierStokesMms mms, MdArray<double, 4> rhs, int nguard, Box box)
 {
     int i = blockIdx.x*blockDim.x+threadIdx.x;
@@ -17,7 +20,7 @@ __global__ void K_MmsRhs(NavierStokesMms mms, MdArray<double, 4> rhs, int nguard
         GetCoords(eta, xyz);
         double rhsAna[5];
         mms.rhs(xyz[0], xyz[1], xyz[2], rhsAna);
-        for (int nv = 0; nv < nvars; nv++) rhs(i, j, k, nv) = rhsAna[nv];
+        for (int nv = 0; nv < nvars; nv++) rhs(i, j, k, nv) -= rhsAna[nv];
     }
 }
 
@@ -67,4 +70,23 @@ void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims, const GpuConfig
     }
     cudaDeviceSynchronize();
     Cu_Check(cudaGetLastError());
+}
+
+void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas, const GpuConfig& config)
+{
+    print("MMS");
+    NavierStokesMms mms(gas);
+    print("Fill analytical function");
+    AnalyticalFcn(mms, prims, config);
+    
+    print("Zero RHS");
+    FillConst(rhs, 0.0, config);
+    
+    print("Compute RHS");
+    ComputeRhs(rhs, prims, gas, config);
+    
+    print("Analytical RHS");
+    AnalyticalRhs(mms, rhs, config);
+    Output(rhs, "output", "RHS_error");
+    CallError("Finished MMS");
 }

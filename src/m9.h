@@ -31,6 +31,17 @@ template <typename T> struct m9
         data[8] = rhs.data[8];
     }
     
+    _f_hybrid T det(void)
+    {
+        // 0  3  6
+        // 1  4  7
+        // 2  5  8
+        return
+             data[0]*(data[4]*data[8]-data[7]*data[5])
+            +data[3]*(data[7]*data[2]-data[1]*data[8])
+            +data[6]*(data[1]*data[5]-data[4]*data[2]);
+    }
+    
     _f_hybrid T& operator () (const int i, const int j) {return data[i+3*j];}
 };
 
