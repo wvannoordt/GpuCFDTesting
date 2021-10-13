@@ -1,4 +1,4 @@
-#include "Rhs.h"
+#include "Conv.h"
 #include "Metric.h"
 
 #define f_DivSplit(q,j,l,v1)           (0.500*(q((v1),(j)) +   q((v1),(j)+(l))))
@@ -7,7 +7,7 @@
 #define fg_CubeSplit(q,j,l,v1,v2,v3)   (0.125*(q((v1),(j)) +   q((v1),(j)+(l)))*(q((v2),(j)) + q((v2),(j)+(l))) * (q((v3),(j)) + q((v3),(j)+(l))))
 #define fg_DivSplit(q,j,l,v1,v2)       (0.500*((q((v1),(j)+(l))*q((v2),(j))) +   (q((v1),(j)) * q((v2),(j)+(l)))))
 
-__global__ void K_Rhs(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec gas, int nguard, Box box)
+__global__ void K_Conv_Central(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec gas, int nguard, Box box)
 {
     int i = blockIdx.x*blockDim.x+threadIdx.x;
     int j = blockIdx.y*blockDim.y+threadIdx.y;
@@ -112,7 +112,7 @@ __global__ void K_Rhs(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec
     }
 }
 
-void ComputeRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas, const GpuConfig& config)
+void ComputeConvRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas, const GpuConfig& config)
 {
     dim3 grid = config.GridConfig();
     dim3 block = config.BlockConfig();
@@ -121,7 +121,7 @@ void ComputeRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas, const GpuCo
         auto flowArray = flow.GetBlock(lb);
         auto rhsArray = rhs.GetBlock(lb);
         auto box = flow.GetBox(lb);
-        K_Rhs<<<grid, block>>>(rhsArray, flowArray, gas, flow.nguard, box);
+        K_Conv_Central<<<grid, block>>>(rhsArray, flowArray, gas, flow.nguard, box);
     }
     cudaDeviceSynchronize(); 
     Cu_Check(cudaGetLastError());

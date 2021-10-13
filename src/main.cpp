@@ -11,7 +11,8 @@
 #include "Exchange.h"
 #include "TimeControl.h"
 #include "OutputProps.h"
-#include "Rhs.h"
+#include "Conv.h"
+#include "Visc.h"
 #include "Advance.h"
 #include "ScopeTimer.h"
 #include "Mms.h"
@@ -75,8 +76,9 @@ int main(int argc, char** argv)
         ScopeTimer tmr("step");
         print(time);
         FillConst(rhs, 0.0, config);
-        ComputeRhs(rhs, flow, gas, config);
-        if (time.nt % outputProps.outputInterval == 0) 
+        ComputeConvRhs(rhs, flow, gas, config);
+        ComputeViscRhs(rhs, flow, gas, config);
+        if (time.nt % outputProps.outputInterval == 0)
         {
             std::string ts = zfill(time.nt, 8);
             std::string filename = "data"+ts;

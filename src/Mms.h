@@ -79,7 +79,7 @@ struct NavierStokesMms
             + gas.gamma*(Rho(x,y,z)*dP_dz(x,y,z)-dRho_dz(x,y,z)*P(x,y,z))/(Rho(x,y,z)*Rho(x,y,z)*(gas.gamma-1.0));
     }
     
-    _f_no_inline _f_hybrid void rhs(const double& x, const double& y, const double& z, double (&rhsAr)[5]) const
+    _f_no_inline _f_hybrid void conv_rhs(const double& x, const double& y, const double& z, double (&rhsAr)[5]) const
     {
         rhsAr[0] = 
             -U(x,y,z)*dRho_dx(x,y,z)-dU_dx(x,y,z)*Rho(x,y,z)
@@ -140,7 +140,7 @@ struct NavierStokesMms
     }
 };
 
-void AnalyticalRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config);
+void AnalyticalConvRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config);
 void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims, const GpuConfig& config);
 void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas, const GpuConfig& config);
 #endif

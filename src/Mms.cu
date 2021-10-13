@@ -1,10 +1,10 @@
 #include "Mms.h"
 #include "v3.h"
 #include "Metric.h"
-#include "Rhs.h"
+#include "Conv.h"
 #include "Fill.h"
 #include "Output.h"
-__global__ void K_MmsRhs(NavierStokesMms mms, MdArray<double, 4> rhs, int nguard, Box box)
+__global__ void K_MmsConvRhs(NavierStokesMms mms, MdArray<double, 4> rhs, int nguard, Box box)
 {
     int i = blockIdx.x*blockDim.x+threadIdx.x;
     int j = blockIdx.y*blockDim.y+threadIdx.y;
@@ -19,7 +19,7 @@ __global__ void K_MmsRhs(NavierStokesMms mms, MdArray<double, 4> rhs, int nguard
         v3<double> xyz;
         GetCoords(eta, xyz);
         double rhsAna[5];
-        mms.rhs(xyz[0], xyz[1], xyz[2], rhsAna);
+        mms.conv_rhs(xyz[0], xyz[1], xyz[2], rhsAna);
         for (int nv = 0; nv < nvars; nv++) rhs(i, j, k, nv) -= rhsAna[nv];
     }
 }
@@ -44,7 +44,7 @@ __global__ void K_MmsTestFcn(NavierStokesMms mms, MdArray<double, 4> prims, int 
     }
 }
 
-void AnalyticalRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config)
+void AnalyticalConvRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config)
 {
     dim3 grid = config.GridConfig();
     dim3 block = config.BlockConfig();
@@ -52,7 +52,7 @@ void AnalyticalRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& 
     {
         auto array = rhs.GetBlock(lb);
         auto box = rhs.GetBox(lb);
-        K_MmsRhs<<<grid, block>>>(mms, array, rhs.nguard, box);
+        K_MmsConvRhs<<<grid, block>>>(mms, array, rhs.nguard, box);
     }
     cudaDeviceSynchronize();
     Cu_Check(cudaGetLastError());
@@ -83,10 +83,10 @@ void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas, const GpuConfi
     FillConst(rhs, 0.0, config);
     
     print("Compute RHS");
-    ComputeRhs(rhs, prims, gas, config);
+    ComputeConvRhs(rhs, prims, gas, config);
     
     print("Analytical RHS");
-    AnalyticalRhs(mms, rhs, config);
-    Output(rhs, "output", "RHS_error");
+    AnalyticalConvRhs(mms, rhs, config);
+    Output(rhs, "output", "RHS_conv_error");
     CallError("Finished MMS");
 }

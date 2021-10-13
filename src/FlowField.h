@@ -52,7 +52,7 @@ struct FlowField
         numBlocks = 1;
         for (auto p: blockDim) numBlocks *= p;
         size_t totalAllocSize = blockSizeBytes * numBlocks;
-        dataBlock = (double*)malloc(blockSizeBytes);
+        cudaMallocHost((void**)(&dataBlock), blockSizeBytes);
         cudaMalloc((void**)(&data_d), totalAllocSize);
         for (int i = 0; i < numVars; i++)
         {
