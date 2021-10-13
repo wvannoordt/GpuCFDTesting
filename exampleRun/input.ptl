@@ -1,4 +1,4 @@
-#define numPoints 24
+#define numPoints 64
 #define twoPi 6.28318530718
 Grid
 {
