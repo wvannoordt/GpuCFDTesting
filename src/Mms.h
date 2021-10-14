@@ -130,6 +130,12 @@ struct NavierStokesMms
             -dP_dz  (x,y,z);
     }
     
+    _f_no_inline _f_hybrid void conv_rhs(const double& x, const double& y, const double& z, double (&rhsAr)[5]) const
+    {
+        rhsAr[0] = 0.0;
+        
+    }
+    
     _f_hybrid void testFcn(const double& x, const double& y, const double& z, double (&primsAr)[5]) const
     {
         primsAr[0] = P(x, y, z);
