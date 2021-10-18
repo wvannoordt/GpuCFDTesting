@@ -12,6 +12,7 @@ Fluid
     cp = 3.5
     visc = 0.000625
     Tinf = 0.7143
+    prandtl = 0.72
 }
 TGV
 {

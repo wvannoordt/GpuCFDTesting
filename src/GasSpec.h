@@ -7,8 +7,9 @@ struct GasSpec
     double cp;
     double visc;
     double Tinf;
-    
+    double beta; // bulk viscosity
     double R;
+    double prandtl;
     
     void Read(PTL::PropertySection& section)
     {
@@ -16,9 +17,11 @@ struct GasSpec
         section["cp"].MapTo(&cp) = new PTL::PTLDouble(1005.0, "Specific heat at Constant Pressure");
         section["visc"].MapTo(&visc) = new PTL::PTLDouble(1.8e-5, "Constant viscosity");
         section["Tinf"].MapTo(&Tinf) = new PTL::PTLDouble(300.0, "Freestream temperature");
+        section["prandtl"].MapTo(&prandtl) = new PTL::PTLDouble(0.72, "Prandtl number");
         section.StrictParse();
         
         R = cp*(gamma-1)/gamma;
+        beta = (-2.0/3.0)*visc; // stokes hypothesis
     }
 };
 

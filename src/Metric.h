@@ -1,7 +1,6 @@
 #ifndef METRIC_H
 #define METRIC_H
 
-#include "ConstMath.h"
 #include "CudaHeaders.h"
 #include "v3.h"
 #include "m9.h"
