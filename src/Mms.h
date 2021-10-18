@@ -18,30 +18,74 @@ struct NavierStokesMms
         gas = gas_in;
     }
 
+    //P and derivatives
     _f_no_inline _f_hybrid double  P(const double& x, const double& y, const double& z)    const {return 5.0+2.0*cos(3.0*pi*x)*sin(2.0*pi*y)+sin(4.0*pi*z);}
     _f_no_inline _f_hybrid double dP_dx(const double& x, const double& y, const double& z) const {return -2.0*3.0*pi*sin(3.0*pi*x)*sin(2.0*pi*y);}
     _f_no_inline _f_hybrid double dP_dy(const double& x, const double& y, const double& z) const {return 2.0*2.0*pi*cos(3.0*pi*x)*cos(2.0*pi*y);}
     _f_no_inline _f_hybrid double dP_dz(const double& x, const double& y, const double& z) const {return 4.0*pi*cos(4.0*pi*z);}
-    
+
+    //T and derivatives
     _f_no_inline _f_hybrid double  T(const double& x, const double& y, const double& z)    const {return 10.0+2.0*cos(2.0*pi*x)*sin(3.0*pi*y)+sin(4.0*pi*z);}
     _f_no_inline _f_hybrid double dT_dx(const double& x, const double& y, const double& z) const {return -2.0*2.0*pi*sin(2.0*pi*x)*sin(3.0*pi*y);}
     _f_no_inline _f_hybrid double dT_dy(const double& x, const double& y, const double& z) const {return  2.0*3.0*pi*cos(2.0*pi*x)*cos(3.0*pi*y);}
     _f_no_inline _f_hybrid double dT_dz(const double& x, const double& y, const double& z) const {return  4.0*pi*cos(4.0*pi*z);}
+    _f_no_inline _f_hybrid double d2T_dx2(const double& x, const double& y, const double& z) const {return -2.0*2.0*2.0*pi*pi*cos(2.0*pi*x)*sin(3.0*pi*y);}
+    _f_no_inline _f_hybrid double d2T_dy2(const double& x, const double& y, const double& z) const {return  -2.0*3.0*3.0*pi*pi*cos(2.0*pi*x)*sin(3.0*pi*y);}
+    _f_no_inline _f_hybrid double d2T_dz2(const double& x, const double& y, const double& z) const {return  -4.0*4.0*pi*pi*sin(4.0*pi*z);}
     
+    //U and derivatives
     _f_no_inline _f_hybrid double  U(const double& x, const double& y, const double& z)    const {return sin(3.0*pi*x)*cos(2.0*pi*y)*cos(2.0*pi*z);}
     _f_no_inline _f_hybrid double dU_dx(const double& x, const double& y, const double& z) const {return  3.0*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*cos(2.0*pi*z);}
     _f_no_inline _f_hybrid double dU_dy(const double& x, const double& y, const double& z) const {return -2.0*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*cos(2.0*pi*z);}
     _f_no_inline _f_hybrid double dU_dz(const double& x, const double& y, const double& z) const {return -2.0*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*sin(2.0*pi*z);}
     
+    _f_no_inline _f_hybrid double d2U_dxx(const double& x, const double& y, const double& z) const {return  -3.0*3.0*pi*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*cos(2.0*pi*z);}
+    _f_no_inline _f_hybrid double d2U_dxy(const double& x, const double& y, const double& z) const {return  -3.0*2.0*pi*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*cos(2.0*pi*z);}
+    _f_no_inline _f_hybrid double d2U_dxz(const double& x, const double& y, const double& z) const {return  -3.0*2.0*pi*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*sin(2.0*pi*z);}
+    
+    _f_no_inline _f_hybrid double d2U_dyx(const double& x, const double& y, const double& z) const {return -2.0*3.0*pi*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*cos(2.0*pi*z);}
+    _f_no_inline _f_hybrid double d2U_dyy(const double& x, const double& y, const double& z) const {return -2.0*2.0*pi*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*cos(2.0*pi*z);}
+    _f_no_inline _f_hybrid double d2U_dyz(const double& x, const double& y, const double& z) const {return  2.0*2.0*pi*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*sin(2.0*pi*z);}
+    
+    _f_no_inline _f_hybrid double d2U_dzx(const double& x, const double& y, const double& z) const {return -2.0*3.0*pi*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*sin(2.0*pi*z);}
+    _f_no_inline _f_hybrid double d2U_dzy(const double& x, const double& y, const double& z) const {return  2.0*2.0*pi*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*sin(2.0*pi*z);}
+    _f_no_inline _f_hybrid double d2U_dzz(const double& x, const double& y, const double& z) const {return -2.0*2.0*pi*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*cos(2.0*pi*z);}
+    
+    //V and derivatives
     _f_no_inline _f_hybrid double  V(const double& x, const double& y, const double& z)    const {return cos(3.0*pi*x)*cos(2.0*pi*y)*cos(3.0*pi*z);}
     _f_no_inline _f_hybrid double dV_dx(const double& x, const double& y, const double& z) const {return -3.0*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*cos(3.0*pi*z);}
     _f_no_inline _f_hybrid double dV_dy(const double& x, const double& y, const double& z) const {return -2.0*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*cos(3.0*pi*z);}
     _f_no_inline _f_hybrid double dV_dz(const double& x, const double& y, const double& z) const {return -3.0*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*sin(3.0*pi*z);}
     
+    _f_no_inline _f_hybrid double d2V_dxx(const double& x, const double& y, const double& z) const {return -3.0*3.0*pi*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*cos(3.0*pi*z);}
+    _f_no_inline _f_hybrid double d2V_dxy(const double& x, const double& y, const double& z) const {return  3.0*2.0*pi*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*cos(3.0*pi*z);}
+    _f_no_inline _f_hybrid double d2V_dxz(const double& x, const double& y, const double& z) const {return  3.0*3.0*pi*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*sin(3.0*pi*z);}
+    
+    _f_no_inline _f_hybrid double d2V_dyx(const double& x, const double& y, const double& z) const {return  2.0*3.0*pi*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*cos(3.0*pi*z);}
+    _f_no_inline _f_hybrid double d2V_dyy(const double& x, const double& y, const double& z) const {return -2.0*2.0*pi*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*cos(3.0*pi*z);}
+    _f_no_inline _f_hybrid double d2V_dyz(const double& x, const double& y, const double& z) const {return  2.0*3.0*pi*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*sin(3.0*pi*z);}
+    
+    _f_no_inline _f_hybrid double d2V_dzx(const double& x, const double& y, const double& z) const {return  3.0*3.0*pi*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*sin(3.0*pi*z);}
+    _f_no_inline _f_hybrid double d2V_dzy(const double& x, const double& y, const double& z) const {return  3.0*2.0*pi*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*sin(3.0*pi*z);}
+    _f_no_inline _f_hybrid double d2V_dzz(const double& x, const double& y, const double& z) const {return -3.0*3.0*pi*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*cos(3.0*pi*z);}
+    
+    //W and derivatives
     _f_no_inline _f_hybrid double  W(const double& x, const double& y, const double& z)    const {return sin(3.0*pi*x)*sin(2.0*pi*y)*cos(4.0*pi*z);}
     _f_no_inline _f_hybrid double dW_dx(const double& x, const double& y, const double& z) const {return  3.0*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*cos(4.0*pi*z);}
     _f_no_inline _f_hybrid double dW_dy(const double& x, const double& y, const double& z) const {return  2.0*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*cos(4.0*pi*z);}
     _f_no_inline _f_hybrid double dW_dz(const double& x, const double& y, const double& z) const {return -4.0*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*sin(4.0*pi*z);}
+    
+    _f_no_inline _f_hybrid double d2W_dxx(const double& x, const double& y, const double& z) const {return  -3.0*3.0*pi*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*cos(4.0*pi*z);}
+    _f_no_inline _f_hybrid double d2W_dxy(const double& x, const double& y, const double& z) const {return   3.0*2.0*pi*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*cos(4.0*pi*z);}
+    _f_no_inline _f_hybrid double d2W_dxz(const double& x, const double& y, const double& z) const {return  -3.0*4.0*pi*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*sin(4.0*pi*z);}
+    
+    _f_no_inline _f_hybrid double d2W_dyx(const double& x, const double& y, const double& z) const {return   2.0*3.0*pi*pi*cos(3.0*pi*x)*cos(2.0*pi*y)*cos(4.0*pi*z);}
+    _f_no_inline _f_hybrid double d2W_dyy(const double& x, const double& y, const double& z) const {return  -2.0*2.0*pi*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*cos(4.0*pi*z);}
+    _f_no_inline _f_hybrid double d2W_dyz(const double& x, const double& y, const double& z) const {return  -2.0*4.0*pi*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*sin(4.0*pi*z);}
+    
+    _f_no_inline _f_hybrid double d2W_dzx(const double& x, const double& y, const double& z) const {return -4.0*3.0*pi*pi*cos(3.0*pi*x)*sin(2.0*pi*y)*sin(4.0*pi*z);}
+    _f_no_inline _f_hybrid double d2W_dzy(const double& x, const double& y, const double& z) const {return -4.0*2.0*pi*pi*sin(3.0*pi*x)*cos(2.0*pi*y)*sin(4.0*pi*z);}
+    _f_no_inline _f_hybrid double d2W_dzz(const double& x, const double& y, const double& z) const {return -4.0*4.0*pi*pi*sin(3.0*pi*x)*sin(2.0*pi*y)*cos(4.0*pi*z);}
     
     _f_no_inline _f_hybrid double  Rho(const double& x, const double& y, const double& z) const {return P(x,y,z)/(gas.R*T(x,y,z));}
     _f_no_inline _f_hybrid double dRho_dx(const double& x, const double& y, const double& z) const
@@ -130,7 +174,7 @@ struct NavierStokesMms
             -dP_dz  (x,y,z);
     }
     
-    _f_no_inline _f_hybrid void conv_rhs(const double& x, const double& y, const double& z, double (&rhsAr)[5]) const
+    _f_no_inline _f_hybrid void visc_rhs(const double& x, const double& y, const double& z, double (&rhsAr)[5]) const
     {
         rhsAr[0] = 0.0;
         
