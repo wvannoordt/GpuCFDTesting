@@ -1,11 +1,6 @@
 #include "Visc.h"
 #include "Metric.h"
-
-#define f_DivSplit(q,j,l,v1)           (0.500*(q((v1),(j)) +   q((v1),(j)+(l))))
-#define f_DivSplit2(q,j,l,v1,v2)          (0.500*(q((v1),(j))*q((v2),(j)) +   q((v1),(j)+(l))*q((v2),(j)+(l))))
-#define fg_QuadSplit(q,j,l,v1,v2)      (0.250*(q((v1),(j)) +   q((v1),(j)+(l)))*(q((v2),(j)) + q((v2),(j)+(l))))
-#define fg_CubeSplit(q,j,l,v1,v2,v3)   (0.125*(q((v1),(j)) +   q((v1),(j)+(l)))*(q((v2),(j)) + q((v2),(j)+(l))) * (q((v3),(j)) + q((v3),(j)+(l))))
-#define fg_DivSplit(q,j,l,v1,v2)       (0.500*((q((v1),(j)+(l))*q((v2),(j))) +   (q((v1),(j)) * q((v2),(j)+(l)))))
+#include "StaticLoop.h"
 
 __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpec gas, int nguard, Box box)
 {
@@ -19,7 +14,10 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
     double Rgas = gas.R;
     v3<double> eta;
     m9<double> deta_dxyz;
-    DataView<double, Dims<3, 3, 3>> stencil;
+    DataView<double, Dims<3, 3, 2>> stencil;
+    
+    v3<int> ijk(i, j, k);
+    double rhsVals[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
     if (i<flow.dims[0]-nguard && j<flow.dims[1]-nguard && k<flow.dims[2]-nguard && i >= nguard && j >= nguard && k >= nguard)
     {
         eta[0] = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
@@ -28,10 +26,19 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
         GetCoordsGrad(eta, deta_dxyz);
         double jac = deta_dxyz.det();
         
-        //Loop x, y, z
-        for (int idir = 0; idir < dim; idir++)
+        //plusMinus = 0 -> negative face
+        //plusMinus = 1 -> positive face
+        for (int plusMinus=0; plusMinus<=1; plusMinus++)
         {
-        
+            //Loop x, y, z
+            static_for<0,3>([&](auto i)
+            {
+                //idir  = normal direction
+                //idir1 = tangent direction
+                //idir2 = other tangent direction
+                int idir = i.value;
+                permutation<i.value, mod(i.value+1, 3), mod(i.value+2, 3)> perm;
+            });
         }
     }
 }

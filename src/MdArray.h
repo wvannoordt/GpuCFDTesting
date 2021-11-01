@@ -4,6 +4,7 @@
 #include <type_traits>
 #include "CallError.h"
 #include "CudaHeaders.h"
+#include "permutation.h"
 
 template <typename arType, const int arRank = 1> struct MdArray
 {

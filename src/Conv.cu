@@ -1,5 +1,6 @@
 #include "Conv.h"
 #include "Metric.h"
+#include "StaticLoop.h"
 
 #define f_DivSplit(q,j,l,v1)           (0.500*(q((v1),(j)) +   q((v1),(j)+(l))))
 #define f_DivSplit2(q,j,l,v1,v2)          (0.500*(q((v1),(j))*q((v2),(j)) +   q((v1),(j)+(l))*q((v2),(j)+(l))))
@@ -32,9 +33,9 @@ __global__ void K_Conv_Central(MdArray<double, 4> rhsAr, MdArray<double, 4> flow
             dijk[idir] = 1;
             double rhsArr[5] = {0.0};
         
-            for (int n = 0; n < centOrder + 1; n++)
+            static_for<0,centOrder + 1>([&](auto nloop)
             {
-                
+                int n = nloop.value;
                 int ii = i+dijk[0]*(n-stencilWid);
                 int jj = j+dijk[1]*(n-stencilWid);
                 int kk = k+dijk[2]*(n-stencilWid);
@@ -68,7 +69,7 @@ __global__ void K_Conv_Central(MdArray<double, 4> rhsAr, MdArray<double, 4> flow
                 {
                     stencilData(1,n) += stencilData(5+vel_comp,n)*deta_dxyz(idir, vel_comp)/stencilJac;
                 }
-            }
+            });
             eta[0] = (box.bounds[0]+((double)(i-nguard)+0.5)*box.dx[0]);
             eta[1] = (box.bounds[2]+((double)(j-nguard)+0.5)*box.dx[1]);
             eta[2] = (box.bounds[4]+((double)(k-nguard)+0.5)*box.dx[2]);
