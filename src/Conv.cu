@@ -113,10 +113,10 @@ __global__ void K_Conv_Central(MdArray<double, 4> rhsAr, MdArray<double, 4> flow
     }
 }
 
-void ComputeConvRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas, const GpuConfig& config)
+void ComputeConvRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = rhs.GridConfig();
+    dim3 block = rhs.BlockConfig();
     for (int lb = 0; lb < flow.numBlocks; lb++)
     {
         auto flowArray = flow.GetBlock(lb);

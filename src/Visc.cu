@@ -37,16 +37,16 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                 //idir1 = tangent direction
                 //idir2 = other tangent direction
                 int idir = i.value;
-                permutation<i.value, mod(i.value+1, 3), mod(i.value+2, 3)> perm;
+                // permutation<i.value, mod(i.value+1, 3), mod(i.value+2, 3)> perm;
             });
         }
     }
 }
 
-void ComputeViscRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas, const GpuConfig& config)
+void ComputeViscRhs(FlowField& rhs, FlowField& flow, const GasSpec& gas)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = rhs.GridConfig();
+    dim3 block = rhs.BlockConfig();
     for (int lb = 0; lb < flow.numBlocks; lb++)
     {
         auto flowArray = flow.GetBlock(lb);

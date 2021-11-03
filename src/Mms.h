@@ -4,7 +4,6 @@
 #include "FlowField.h"
 #include "GasSpec.h"
 #include "CudaHeaders.h"
-#include "GpuConfig.h"
 #include <cmath>
 
 
@@ -253,7 +252,7 @@ struct NavierStokesMms
     }
 };
 
-void AnalyticalConvRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config);
-void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims, const GpuConfig& config);
-void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas, const GpuConfig& config);
+void AnalyticalConvRhs(const NavierStokesMms& mms, FlowField& rhs);
+void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims);
+void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas);
 #endif

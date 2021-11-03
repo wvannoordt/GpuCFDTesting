@@ -32,7 +32,7 @@ __global__ void K_ExchangeRegion(MdArray<double, 4> send, MdArray<double, 4> rec
     }
 }
 
-void ExchangeSingleBlock(FlowField& arr, int send, int recv, int dijk[3], GpuConfig& config)
+void ExchangeSingleBlock(FlowField& arr, int send, int recv, int dijk[3])
 {
     //send + dijk = recv
     auto sendBlock = arr.GetBlock(send);
@@ -70,7 +70,7 @@ void ExchangeSingleBlock(FlowField& arr, int send, int recv, int dijk[3], GpuCon
         }            
     }
     
-    dim3 block = config.BlockConfig();
+    dim3 block = arr.BlockConfig();
     dim3 grid(1,1,1);
     grid.x = (exchangeRegionSize[0] + block.x - 1)/block.x;
     grid.y = (exchangeRegionSize[1] + block.y - 1)/block.y;
@@ -83,7 +83,7 @@ void ExchangeSingleBlock(FlowField& arr, int send, int recv, int dijk[3], GpuCon
     K_ExchangeRegion<<<grid, block>>>(sendBlock, recvBlock, ijkminSend, ijkminRecv, exchangeRegionSize);
 }
 
-void Exchange(FlowField& arr, GpuConfig& config)
+void Exchange(FlowField& arr)
 {
     int dijk[3] = {0, 0, 0};
     int numNeighbors = 9;
@@ -101,7 +101,7 @@ void Exchange(FlowField& arr, GpuConfig& config)
             if (dijk[0]!=0||dijk[1]!=0||dijk[2]!=0)
             {
                 int lbNeigh = GetNeighbor(arr, lb, dijk[0], dijk[1], dijk[2]);
-                ExchangeSingleBlock(arr, lb, lbNeigh, dijk, config);
+                ExchangeSingleBlock(arr, lb, lbNeigh, dijk);
             }
         }
     }

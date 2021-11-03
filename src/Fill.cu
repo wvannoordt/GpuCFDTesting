@@ -31,10 +31,10 @@ __global__ void K_FillTgv(MdArray<double, 4> flow, GasSpec gas, TgvSpec tgv, int
     }
 }
 
-void FillTgv(FlowField& flow, const GasSpec& gas, const TgvSpec& tgv, const GpuConfig& config)
+void FillTgv(FlowField& flow, const GasSpec& gas, const TgvSpec& tgv)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = flow.GridConfig();
+    dim3 block = flow.BlockConfig();
     for (int lb = 0; lb < flow.numBlocks; lb++)
     {
         auto array = flow.GetBlock(lb);
@@ -60,10 +60,10 @@ __global__ void K_FillConst(MdArray<double, 4> flow, int nguard, double val)
     }
 }
 
-void FillConst(FlowField& arr,  double val, const GpuConfig& config)
+void FillConst(FlowField& arr,  double val)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = arr.GridConfig();
+    dim3 block = arr.BlockConfig();
     for (int lb = 0; lb < arr.numBlocks; lb++)
     {
         auto array = arr.GetBlock(lb);

@@ -109,6 +109,33 @@ struct FlowField
         return output;
     }
     
+    dim3 BlockConfig(void) const
+    {
+        dim3 output;
+        output.x = CU_BLOCK_SIZE;
+        output.y = CU_BLOCK_SIZE;
+        output.z = 1;
+        if (this->is3D)
+        {
+            output.z = CU_BLOCK_SIZE;
+        }
+        return output;
+    }
+    
+    dim3 GridConfig(void) const
+    {
+        dim3 output;
+        dim3 gridConf = this->BlockConfig();
+        output.x = (this->blockSize[0]+2*this->nguard + gridConf.x - 1)/gridConf.x;
+        output.y = (this->blockSize[1]+2*this->nguard + gridConf.y - 1)/gridConf.y;
+        output.z = 1;
+        if (this->is3D)
+        {
+            output.z = (this->blockSize[2]+2*this->nguard + gridConf.z - 1)/gridConf.z;
+        }
+        return output;
+    }
+    
     ~FlowField(void)
     {
         free(dataBlock);

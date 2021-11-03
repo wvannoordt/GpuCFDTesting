@@ -3,8 +3,7 @@
 
 #include "FlowField.h"
 #include "GasSpec.h"
-#include "GpuConfig.h"
 
-void Advance(FlowField& rhs, FlowField& flow, double timestep, const GasSpec& gas, const GpuConfig& config);
+void Advance(FlowField& rhs, FlowField& flow, double timestep, const GasSpec& gas);
 
 #endif

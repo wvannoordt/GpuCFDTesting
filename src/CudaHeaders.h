@@ -19,5 +19,6 @@
 #endif
 
 #define Cu_Check(mycode) {cudaError_t ____code = mycode; if (____code!=cudaSuccess) {CallError(std::string("CUDA Runtime Error. Message:\n") + cudaGetErrorString(____code));}}
+#define CU_BLOCK_SIZE 4
 
 #endif

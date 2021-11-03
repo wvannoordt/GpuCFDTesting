@@ -65,10 +65,10 @@ __global__ void K_MmsTestFcn(NavierStokesMms mms, MdArray<double, 4> prims, int 
     }
 }
 
-void AnalyticalConvRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config)
+void AnalyticalConvRhs(const NavierStokesMms& mms, FlowField& rhs)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = rhs.GridConfig();
+    dim3 block = rhs.BlockConfig();
     for (int lb = 0; lb < rhs.numBlocks; lb++)
     {
         auto array = rhs.GetBlock(lb);
@@ -79,10 +79,10 @@ void AnalyticalConvRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConf
     Cu_Check(cudaGetLastError());
 }
 
-void AnalyticalViscRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConfig& config)
+void AnalyticalViscRhs(const NavierStokesMms& mms, FlowField& rhs)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = rhs.GridConfig();
+    dim3 block = rhs.BlockConfig();
     for (int lb = 0; lb < rhs.numBlocks; lb++)
     {
         auto array = rhs.GetBlock(lb);
@@ -93,10 +93,10 @@ void AnalyticalViscRhs(const NavierStokesMms& mms, FlowField& rhs, const GpuConf
     Cu_Check(cudaGetLastError());
 }
 
-void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims, const GpuConfig& config)
+void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = prims.GridConfig();
+    dim3 block = prims.BlockConfig();
     for (int lb = 0; lb < prims.numBlocks; lb++)
     {
         auto array = prims.GetBlock(lb);
@@ -107,31 +107,31 @@ void AnalyticalFcn(const NavierStokesMms& mms, FlowField& prims, const GpuConfig
     Cu_Check(cudaGetLastError());
 }
 
-void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas, const GpuConfig& config)
+void RunMMS(FlowField& prims, FlowField& rhs, const GasSpec& gas)
 {
     print("MMS");
     NavierStokesMms mms(gas);
     print("Fill analytical function");
-    AnalyticalFcn(mms, prims, config);
+    AnalyticalFcn(mms, prims);
     
     print("Zero RHS");
-    FillConst(rhs, 0.0, config);
+    FillConst(rhs, 0.0);
     
     print("Compute RHS -- Convective terms");
-    ComputeConvRhs(rhs, prims, gas, config);
+    ComputeConvRhs(rhs, prims, gas);
     
     print("Analytical RHS -- Convective terms");
-    AnalyticalConvRhs(mms, rhs, config);
+    AnalyticalConvRhs(mms, rhs);
     Output(rhs, "output", "RHS_conv_error");
     
     print("Zero RHS");
-    FillConst(rhs, 0.0, config);
+    FillConst(rhs, 0.0);
     
     print("Compute RHS -- Viscous terms");
-    ComputeViscRhs(rhs, prims, gas, config);
+    ComputeViscRhs(rhs, prims, gas);
     
     print("Analytical RHS -- Viscous terms");
-    AnalyticalViscRhs(mms, rhs, config);
+    AnalyticalViscRhs(mms, rhs);
     Output(rhs, "output", "RHS_visc_error");
     
     

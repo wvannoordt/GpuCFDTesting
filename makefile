@@ -29,7 +29,7 @@ DLINK := dlink
 endif
 
 HOST_FLAGS   := -x c++ -O3 -g -Wno-unknown-pragmas -std=c++1z -Werror -c ${COMPILE_TIME_OPT}
-DEVICE_FLAGS := -x cu --expt-relaxed-constexpr -dc -O3 ${COMPILE_TIME_OPT}
+DEVICE_FLAGS := -x cu -Wno-deprecated-gpu-targets -arch=sm_50 --expt-relaxed-constexpr -dc -O3 ${COMPILE_TIME_OPT}
 DLINK_FLAGS  := -dlink
 	
 main: setup ${HOST_OBJ} ${DEVICE_OBJ} ${DLINK}

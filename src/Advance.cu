@@ -57,10 +57,10 @@ __global__ void K_Advance(MdArray<double, 4> rhs, MdArray<double, 4> flow, GasSp
     }
 }
 
-void Advance(FlowField& rhs, FlowField& flow, double timestep, const GasSpec& gas, const GpuConfig& config)
+void Advance(FlowField& rhs, FlowField& flow, double timestep, const GasSpec& gas)
 {
-    dim3 grid = config.GridConfig();
-    dim3 block = config.BlockConfig();
+    dim3 grid = rhs.GridConfig();
+    dim3 block = rhs.BlockConfig();
     for (int lb = 0; lb < flow.numBlocks; lb++)
     {
         auto flowArray = flow.GetBlock(lb);

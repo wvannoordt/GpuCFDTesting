@@ -6,7 +6,6 @@
 #include "Fill.h"
 #include "TgvSpec.h"
 #include "GasSpec.h"
-#include "GpuConfig.h"
 #include "Output.h"
 #include "Exchange.h"
 #include "TimeControl.h"
@@ -16,6 +15,9 @@
 #include "Advance.h"
 #include "ScopeTimer.h"
 #include "Mms.h"
+#include "Stats.h"
+#include "StatsProps.h"
+#include "TimeTraceSeries.h"
 
 std::string GetInputFilename(int argc, char** argv)
 {
@@ -40,14 +42,12 @@ int main(int argc, char** argv)
     tgv.Read(tree["TGV"], gas);
     print(tgv);
     
-    GpuConfig config(input);
-    config.Read(tree["GPU"]);
-    
     TimeControl time;
     time.Read(tree["Time"]);
     
     OutputProps outputProps;
     outputProps.Read(tree["Output"]);
+    
     
     FlowField flow(input.blockDim, input.blockSize, input.numVars, input.nguard);
     flow.varNames[0] = "P";
@@ -63,30 +63,37 @@ int main(int argc, char** argv)
     rhs.varNames[3] = "Y-Momentum";
     if (input.is3D) rhs.varNames.back() = "Z-Momentum";
     
-    if (outputProps.doMMS) RunMMS(flow, rhs, gas, config);
+    TimeTraceSeries series;
+    StatsProps stats;
+    stats.Read(tree["Stats"]);
+    DefineStats(stats, flow, gas, series);
+    
+    if (outputProps.doMMS) RunMMS(flow, rhs, gas);
     
     print("Set initial condition...");
-    FillTgv(flow, gas, tgv, config);
+    FillTgv(flow, gas, tgv);
     
-    Exchange(flow, config);
+    Exchange(flow);
     Output(flow, "output", "initialCondition");
     
     for (; time.nt <= time.numSteps; time++)
     {
-        ScopeTimer tmr("step");
+        ScopeTimer tmr("timestep");
         print(time);
-        FillConst(rhs, 0.0, config);
-        ComputeConvRhs(rhs, flow, gas, config);
-        ComputeViscRhs(rhs, flow, gas, config);
+        series.ComputeAll(time);
+        FillConst(rhs, 0.0);
+        ComputeConvRhs(rhs, flow, gas);
+        ComputeViscRhs(rhs, flow, gas);
         if (time.nt % outputProps.outputInterval == 0)
         {
+            ScopeTimer outputTimer("output");
             std::string ts = zfill(time.nt, 8);
             std::string filename = "data"+ts;
             print("Outputting file", filename);
             Output(flow, "output", filename);
         }
-        Advance(rhs, flow, time.timestep, gas, config);
-        Exchange(flow, config);
+        Advance(rhs, flow, time.timestep, gas);
+        Exchange(flow);
     }
     
     return 0;
