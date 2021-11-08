@@ -28,7 +28,7 @@ Time
 Output
 {
     outputInterval = 1000
-    doMMS = false
+    doMMS = true
 }
 Stats
 {
