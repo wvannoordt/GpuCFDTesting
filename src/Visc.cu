@@ -57,61 +57,61 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                         ijk[idir1] -= di1;
                     }
                     ijk[idir0] -= di0;
-                    
-                    m9<double> faceVelGradComp;
-                    
-                    //du0/dxi0
-                    for (int vv = 0; vv < dim; vv++)
-                    {
-                        faceVelGradComp(vv, idir0) = (stencil(vv, 1, 1, 1)-stencil(vv, 0, 1, 1))*invdx[idir0];
-                        faceVelGradComp(vv, idir1) = 0.25*(stencil(vv, 1, 2, 1)-stencil(vv, 1, 0, 1) + stencil(vv, 0, 2, 1) - stencil(vv, 0, 0, 1))*invdx[idir1];
-                        faceVelGradComp(vv, idir1) = 0.25*(stencil(vv, 1, 1, 2)-stencil(vv, 1, 1, 0) + stencil(vv, 0, 1, 2) - stencil(vv, 0, 1, 0))*invdx[idir2];
-                    }
-                    
-                    m9<double> faceAverageMetrics;
-                    m9<double> metricsNeighbor;
-                    eta[idir0] += (1-2*plusMinus)*box.dx[idir0];
-                    GetCoordsGrad(eta, metricsNeighbor);
-                    eta[idir0] -= (1-2*plusMinus)*box.dx[idir0];
-                    
-                    for (int i2 = 0; i2<3; i2++)
-                    {
-                        for (int i1 = 0; i1<3; i1++)
-                        {
-                            faceAverageMetrics(i1,i2) = 0.5*(metricsNeighbor(i1,i2)+deta_dxyz(i1, i2));
-                        }
-                    }
-                    
-                    m9<double> faceVelGradPhys;
-                    for (int i2 = 0; i2<3; i2++)
-                    {
-                        for (int i1 = 0; i1<3; i1++)
-                        {
-                            faceVelGradPhys(i1,i2) = faceVelGradComp(i1,i2)*faceAverageMetrics(i2,i1);
-                        }
-                    }
-                    
-                    m9<double> tau;
-                    for (int i2 = 0; i2<3; i2++)
-                    {
-                        for (int i1 = 0; i1<3; i1++)
-                        {
-                            tau(i1, i2) = gas.visc*(faceVelGradPhys(i1,i2)+faceVelGradPhys(i2,i1));
-                        }
-                    }
-                    
-                    for (int i2 = 0; i2<3; i2++)
-                    {
-                        for (int i1 = 0; i1<3; i1++)
-                        {
-                            tau(i2, i2) += gas.beta*(faceVelGradPhys(i1,i1));
-                        }
-                    }
-                    
+                }
+                
+                m9<double> faceVelGradComp;
+                
+                //du0/dxi0
+                for (int vv = 0; vv < dim; vv++)
+                {
+                    faceVelGradComp(vv, idir0) = (stencil(vv, 1, 1, 1)-stencil(vv, 0, 1, 1))*invdx[idir0];
+                    faceVelGradComp(vv, idir1) = 0.25*(stencil(vv, 1, 2, 1)-stencil(vv, 1, 0, 1) + stencil(vv, 0, 2, 1) - stencil(vv, 0, 0, 1))*invdx[idir1];
+                    faceVelGradComp(vv, idir1) = 0.25*(stencil(vv, 1, 1, 2)-stencil(vv, 1, 1, 0) + stencil(vv, 0, 1, 2) - stencil(vv, 0, 1, 0))*invdx[idir2];
+                }
+                
+                m9<double> faceAverageMetrics;
+                m9<double> metricsNeighbor;
+                eta[idir0] += (1-2*plusMinus)*box.dx[idir0];
+                GetCoordsGrad(eta, metricsNeighbor);
+                eta[idir0] -= (1-2*plusMinus)*box.dx[idir0];
+                
+                for (int i2 = 0; i2<3; i2++)
+                {
                     for (int i1 = 0; i1<3; i1++)
                     {
-                        rhsVals[2+idir0] -= (1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(idir0, i1)*invdx[idir0];
+                        faceAverageMetrics(i1,i2) = 0.5*(metricsNeighbor(i1,i2)+deta_dxyz(i1, i2));
                     }
+                }
+                
+                m9<double> faceVelGradPhys;
+                for (int i2 = 0; i2<3; i2++)
+                {
+                    for (int i1 = 0; i1<3; i1++)
+                    {
+                        faceVelGradPhys(i1,i2) = faceVelGradComp(i1,i2)*faceAverageMetrics(i2,i1);
+                    }
+                }
+                
+                m9<double> tau;
+                for (int i2 = 0; i2<3; i2++)
+                {
+                    for (int i1 = 0; i1<3; i1++)
+                    {
+                        tau(i1, i2) = gas.visc*(faceVelGradPhys(i1,i2)+faceVelGradPhys(i2,i1));
+                    }
+                }
+                
+                for (int i2 = 0; i2<3; i2++)
+                {
+                    for (int i1 = 0; i1<3; i1++)
+                    {
+                        tau(i2, i2) += gas.beta*(faceVelGradPhys(i1,i1));
+                    }
+                }
+                
+                for (int i1 = 0; i1<3; i1++)
+                {
+                    rhsVals[2+idir0] -= (1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(idir0, i1)*invdx[idir0];
                 }
             });
         }
