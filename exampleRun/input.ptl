@@ -10,7 +10,7 @@ Fluid
 {
     gamma = 1.4
     cp = 3.5
-    visc = 0.000625
+    visc = @choose(1, 0.000625, 1.0)
     Tinf = 0.7143
     prandtl = 0.72
 }

@@ -66,7 +66,7 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                 {
                     faceVelGradComp(vv, idir0) = (stencil(vv, 1, 1, 1)-stencil(vv, 0, 1, 1))*invdx[idir0];
                     faceVelGradComp(vv, idir1) = 0.25*(stencil(vv, 1, 2, 1)-stencil(vv, 1, 0, 1) + stencil(vv, 0, 2, 1) - stencil(vv, 0, 0, 1))*invdx[idir1];
-                    faceVelGradComp(vv, idir1) = 0.25*(stencil(vv, 1, 1, 2)-stencil(vv, 1, 1, 0) + stencil(vv, 0, 1, 2) - stencil(vv, 0, 1, 0))*invdx[idir2];
+                    faceVelGradComp(vv, idir2) = 0.25*(stencil(vv, 1, 1, 2)-stencil(vv, 1, 1, 0) + stencil(vv, 0, 1, 2) - stencil(vv, 0, 1, 0))*invdx[idir2];
                 }
                 
                 m9<double> faceAverageMetrics;
@@ -109,16 +109,16 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                     }
                 }
                 
-                for (int i1 = 0; i1<3; i1++)
-                {
-                    rhsVals[2+idir0] -= (1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(idir0, i1)*invdx[idir0];
-                }
+                // for (int i1 = 0; i1<3; i1++)
+                // {
+                    rhsVals[2+idir0] += (1-2*plusMinus)*faceVelGradPhys(idir1, idir1)*invdx[idir0];//(1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(idir0, i1)*invdx[idir0];
+                // }
             });
         }
         
         for (int f = 0; f < 2+dim; f++)
         {
-            rhsAr(i, j, k, f) -= jac*rhsVals[f];
+            rhsAr(i, j, k, f) += jac*rhsVals[f];
         }
     }
 }

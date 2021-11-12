@@ -22,6 +22,8 @@ struct GasSpec
         
         R = cp*(gamma-1)/gamma;
         beta = (-2.0/3.0)*visc; // stokes hypothesis
+        std::cout << "[WARNING: SETTING VISCOSITY tO ZERO]\nFile: " << __FILE__ << "\nLine: " << __LINE__ << std::endl;
+        visc = 0.0;
     }
 };
 
