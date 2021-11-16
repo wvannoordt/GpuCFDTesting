@@ -61,7 +61,9 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                 
                 m9<double> faceVelGradComp;
                 
-                //du0/dxi0
+                //du/dx du/dy du/dz
+                //dv/dx dv/dy dv/dz
+                //dw/dx dw/dy dw/dz
                 for (int vv = 0; vv < dim; vv++)
                 {
                     faceVelGradComp(vv, idir0) = (stencil(vv, 1, 1, 1)-stencil(vv, 0, 1, 1))*invdx[idir0];
@@ -69,6 +71,9 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                     faceVelGradComp(vv, idir2) = 0.25*(stencil(vv, 1, 1, 2)-stencil(vv, 1, 1, 0) + stencil(vv, 0, 1, 2) - stencil(vv, 0, 1, 0))*invdx[idir2];
                 }
                 
+                //dxi/dx   dxi/dy   dxi/dz
+                //deta/dx  deta/dy  deta/dz
+                //dzeta/dx dzeta/dy dzeta/dz
                 m9<double> faceAverageMetrics;
                 m9<double> metricsNeighbor;
                 eta[idir0] += (1-2*plusMinus)*box.dx[idir0];
@@ -79,6 +84,7 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                 {
                     for (int i1 = 0; i1<3; i1++)
                     {
+                        //eventually will need to divide by jacobian here!
                         faceAverageMetrics(i1,i2) = 0.5*(metricsNeighbor(i1,i2)+deta_dxyz(i1, i2));
                     }
                 }
@@ -88,7 +94,10 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                 {
                     for (int i1 = 0; i1<3; i1++)
                     {
-                        faceVelGradPhys(i1,i2) = faceVelGradComp(i1,i2)*faceAverageMetrics(i2,i1);
+                        for (int i0=0; i0<3; i0++)
+                        {
+                            faceVelGradPhys(i1,i2) += faceVelGradComp(i1,i0)*faceAverageMetrics(i2,i0);
+                        }
                     }
                 }
                 
@@ -109,13 +118,23 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                     }
                 }
                 
-                // for (int i1 = 0; i1<3; i1++)
-                // {
-                    rhsVals[2+idir0] += (1-2*plusMinus)*faceVelGradPhys(idir1, idir1)*invdx[idir0];//(1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(idir0, i1)*invdx[idir0];
-                // }
+                for (int i2 = 0; i2<3; i2++)
+                {
+                    for (int i1 = 0; i1<3; i1++)
+                    {
+                        //dxi/dx   dxi/dy   dxi/dz
+                        //deta/dx  deta/dy  deta/dz
+                        //dzeta/dx dzeta/dy dzeta/dz
+                        //the indices are messed up here!
+                        rhsVals[2+i2] += (1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(idir0, i1)*invdx[idir0];
+                        // rhsVals[2+idir0] += (1-2*plusMinus)*faceVelGradComp(idir0, 0)*invdx[idir0];
+                    }
+                }
             });
         }
         
+        //checked so far:
+        // - the divergence term (i.e. diagonal elements of the gradient tensor)
         for (int f = 0; f < 2+dim; f++)
         {
             rhsAr(i, j, k, f) += jac*rhsVals[f];
