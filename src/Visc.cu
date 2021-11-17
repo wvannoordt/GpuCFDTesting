@@ -14,7 +14,7 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
     double Rgas = gas.R;
     v3<double> eta;
     m9<double> deta_dxyz;
-    DataView<double, Dims<3, 2, 3, 3>> stencil;
+    DataView<double, Dims<4, 2, 3, 3>> stencil;
     
     v3<int> ijk(i, j, k);
     double rhsVals[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
@@ -52,6 +52,7 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                             {
                                 stencil(vv, di0+plusMinus, 1+di1, 1+di2) = flow(ijk[0], ijk[1], ijk[2], 2+vv);
                             }
+                            stencil(3, di0+plusMinus, 1+di1, 1+di2) = flow(ijk[0], ijk[1], ijk[2], 1);
                             ijk[idir2] -= di2;
                         }
                         ijk[idir1] -= di1;
@@ -60,6 +61,7 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                 }
                 
                 m9<double> faceVelGradComp;
+                v3<double> faceTemperatureGrad;
                 
                 //du/dx du/dy du/dz
                 //dv/dx dv/dy dv/dz
@@ -70,6 +72,10 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                     faceVelGradComp(vv, idir1) = 0.25*(stencil(vv, 1, 2, 1)-stencil(vv, 1, 0, 1) + stencil(vv, 0, 2, 1) - stencil(vv, 0, 0, 1))*invdx[idir1];
                     faceVelGradComp(vv, idir2) = 0.25*(stencil(vv, 1, 1, 2)-stencil(vv, 1, 1, 0) + stencil(vv, 0, 1, 2) - stencil(vv, 0, 1, 0))*invdx[idir2];
                 }
+                
+                faceTemperatureGrad(idir0) = (stencil(3, 1, 1, 1)-stencil(3, 0, 1, 1))*invdx[idir0];
+                faceTemperatureGrad(idir1) = 0.25*(stencil(3, 1, 2, 1)-stencil(3, 1, 0, 1) + stencil(3, 0, 2, 1) - stencil(3, 0, 0, 1))*invdx[idir1];
+                faceTemperatureGrad(idir2) = 0.25*(stencil(3, 1, 1, 2)-stencil(3, 1, 1, 0) + stencil(3, 0, 1, 2) - stencil(3, 0, 1, 0))*invdx[idir2];
                 
                 //dxi/dx   dxi/dy   dxi/dz
                 //deta/dx  deta/dy  deta/dz
@@ -122,19 +128,26 @@ __global__ void K_Visc(MdArray<double, 4> rhsAr, MdArray<double, 4> flow, GasSpe
                 {
                     for (int i1 = 0; i1<3; i1++)
                     {
-                        //dxi/dx   dxi/dy   dxi/dz
-                        //deta/dx  deta/dy  deta/dz
-                        //dzeta/dx dzeta/dy dzeta/dz
-                        //the indices are messed up here!
-                        rhsVals[2+i2] += (1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(idir0, i1)*invdx[idir0];
-                        // rhsVals[2+idir0] += (1-2*plusMinus)*faceVelGradComp(idir0, 0)*invdx[idir0];
+                        rhsVals[2+i2] += (1-2*plusMinus)*faceAverageMetrics(idir0, i1)*tau(i2, i1)*invdx[idir0];
                     }
+                }
+                
+                v3<double> faceAverageVelocity;
+                for (int vv = 0; vv < 3; vv++)
+                {
+                    faceAverageVelocity(vv) = 0.5*(stencil(vv, 1, 1, 1)+stencil(vv, 0, 1, 1));
+                }
+                
+                for (int j1 = 0; j1<3; j1++)
+                {
+                    for (int i1 = 0; i1<3; i1++)
+                    {
+                        rhsVals[1] += (1-2*plusMinus)*faceAverageMetrics(idir0, i1)*faceAverageVelocity(j1)*tau(i1,j1)*invdx[idir0];
+                    }
+                    rhsVals[1] -= (1-2*plusMinus)*faceAverageMetrics(idir0, j1)*(gas.visc/gas.prandtl)*faceTemperatureGrad(j1)*invdx[idir0];
                 }
             });
         }
-        
-        //checked so far:
-        // - the divergence term (i.e. diagonal elements of the gradient tensor)
         for (int f = 0; f < 2+dim; f++)
         {
             rhsAr(i, j, k, f) += jac*rhsVals[f];

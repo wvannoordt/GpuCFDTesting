@@ -235,8 +235,8 @@ struct NavierStokesMms
             W(x,y,z)*dTau_yz_dy(x,y,z)+dW_dy(x,y,z)*Tau_yz(x,y,z)+
             U(x,y,z)*dTau_zx_dz(x,y,z)+dU_dz(x,y,z)*Tau_zx(x,y,z)+
             V(x,y,z)*dTau_zy_dz(x,y,z)+dV_dz(x,y,z)*Tau_zy(x,y,z)+
-            W(x,y,z)*dTau_zz_dz(x,y,z)+dW_dz(x,y,z)*Tau_zz(x,y,z)+
-            dQ_x_dx(x,y,z)+dQ_y_dy(x,y,z)+dQ_z_dz(x,y,z);
+            W(x,y,z)*dTau_zz_dz(x,y,z)+dW_dz(x,y,z)*Tau_zz(x,y,z)-
+            dQ_x_dx(x,y,z)-dQ_y_dy(x,y,z)-dQ_z_dz(x,y,z);
         rhsAr[2] = dTau_xx_dx(x,y,z)+dTau_xy_dy(x,y,z)+dTau_xz_dz(x,y,z);
         rhsAr[3] = dTau_yx_dx(x,y,z)+dTau_yy_dy(x,y,z)+dTau_yz_dz(x,y,z);
         rhsAr[4] = dTau_zx_dx(x,y,z)+dTau_zy_dy(x,y,z)+dTau_zz_dz(x,y,z);
