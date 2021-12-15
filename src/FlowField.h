@@ -138,7 +138,7 @@ struct FlowField
     
     ~FlowField(void)
     {
-        free(dataBlock);
+        cudaFreeHost(dataBlock);
         cudaFree(data_d);
     }
 };

@@ -10,7 +10,7 @@ Fluid
 {
     gamma = 1.4
     cp = 3.5
-    visc = @choose(1, 0.000625, 1.0)
+    visc = @choose(0, 0.000625, 1.0)
     Tinf = 0.7143
     prandtl = 0.72
 }
@@ -22,13 +22,13 @@ TGV
 }
 Time
 {
-    numSteps = 30000
+    numSteps = 300000
     timestep = 0.0002
 }
 Output
 {
-    outputInterval = 1000
-    doMMS = true
+    outputInterval = 3000
+    doMMS = false
 }
 Stats
 {
